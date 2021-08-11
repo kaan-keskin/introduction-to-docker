@@ -1,4 +1,4 @@
-﻿
+
 
 **2: Docker**
 
@@ -17,7 +17,7 @@ When most people talk about Docker, they’re referring to the technology that r
 
 3. The orchestrator
 
-// Figure koy.
+<img src=".\images\TheDocker.png" style="width:75%; height: 75%;">
 
 
 The runtime operates at the lowest level and is responsible for starting and stopping containers (this includes building all of the OS constructs such as namespaces and cgroups). Docker implements a tiered runtime architecture with high-level and low-level runtimes that work together. The low-level runtime is called runc and is the reference implementation of Open Containers Initiative (OCI) runtime-spec. Its job is to interface with the underlying OS and start and stop containers. Every running container on a Docker node has a runc instance managing it. The higher-level runtime is called containerd. containerd does a lot more than runc. It manages the entire lifecycle of a container, including pulling images, creating network interfaces, and managing lower-level runc instances. containerd is pronounced “container-dee’ and is a graduated CNCF project used by Docker and Kubernetes as a container runtime.
@@ -169,7 +169,7 @@ In many ways, the Docker Engine is like a car engine — both are modular and cr
 
 At the time of writing, the major components that make up the Docker engine are; the *Docker daemon*, *containerd*, *runc*, and various plugins such as networking and storage. Together, these create and run containers.
 
-Figure koy
+<img src=".\images\DockerEngine.png" style="width:75%; height: 75%;">
 
 When Docker was ﬁrst released, the Docker engine had two major components:
 
@@ -180,8 +180,7 @@ The Docker daemon was a monolithic binary. It contained all of the code for the 
 
 LXC provided the daemon with access to the fundamental building-blocks of containers that existed in the Linux kernel. Things like *namespaces* and *control groups (cgroups)*.
 
-Figure 5.2. shows how the daemon, LXC, and the OS, interacted in older versions of Docker.
-Figure koy
+<img src=".\images\DockerEngineLXC.png" style="width:75%; height: 75%;">
 
 
 **Getting rid of LXC**
@@ -198,9 +197,8 @@ Over time, the monolithic nature of the Docker daemon became more and more probl
 3. It wasn’t what the ecosystem wanted
 Docker, Inc. was aware of these challanges and began a huge effort to break apart the monolithic daemon and modularize it. The aim of this work was to break out as much of the functionality as possible from the daemon, and re-implement it in smaller specialized tools. These specialized tools can be swapped out, as well as easily re-used by third parties to build other tools. This plan follows the tried-and-tested Unix philosophy of building small specialized tools that can be pieced together into larger tools. This work of breaking apart and re-factoring the Docker engine has seen **all of the container execution and container runtime code entirely removed from the daemon and refactored into small, specialized tools**.
 
-Figure 5.3 shows a high-level view of the current Docker engine architecture with brief descriptions.
+<img src=".\images\DockerEngineDaemon.png" style="width:75%; height: 75%;">
 
-Figure koy
 
 **The inﬂuence of the Open Container Initiative (OCI)**
 
@@ -211,7 +209,7 @@ While Docker, Inc. was breaking the daemon apart and refactoring code, the OCI w
 As of Docker 1.11 (early 2016), the Docker engine implements the OCI speciﬁcations as closely as possible. For example, the Docker daemon no longer contains any container runtime code — all container runtime code is implemented in a separate OCI-compliant layer. By default, Docker uses *runc* for this. runc is the *reference implementation* of the OCI container-runtime-spec.
 As well as this, the *containerd* component of the Docker Engine makes sure Docker images are presented to *runc* as valid OCI bundles.
 
-Figure koy
+
 
 **runc**
 
@@ -230,7 +228,7 @@ Now that we have a view of the big picture, and some of the history, let’s wal
 
 When you type commands like this into the Docker CLI, the Docker client converts them into the appropriate API payload and POSTs them to the API endpoint exposed by the Docker daemon. The API is implemented in the daemon and can be exposed over a local socket or the network. On Linux the socket is /var/run/docker.sock and on Windows it’s \pipe\docker\_engine. Once the daemon receives the command to create a new container, it makes a call to containerd. Remember that the daemon no-longer contains any code to create containers! Despite its name, *containerd* cannot actually create containers. It uses *runc* to do that. It converts the required Docker image into an OCI bundle and tells runc to use this to create a new container. runc interfaces with the OS kernel to pull together all of the constructs necessary to create a container (namespaces, cgroups etc.). The container process is started as a child-process of runc, and as soon as it is started runc will exit.
 
-Figure koy
+<img src=".\images\DockerEngineShim.png" style="width:75%; height: 75%;">
 
 **One huge beneﬁt of this model**
 
@@ -279,7 +277,7 @@ The client is called docker (docker.exe on Windows) and the daemon is called doc
 
 It’s also possible to conﬁgure them to communicate over the network. By default, network communication occur over an unsecured HTTP socket on port 2375/tcp.
 
-Figure koy
+<img src=".\images\DockerSecurity.png" style="width:75%; height: 75%;">
 
 An insecure conﬁguration like this might be suitable for labs, but it’s unacceptable for anything else. TLS to the rescue! Docker lets you force the client and daemon to only accept network connections that are secured with TLS. This is recommended for production environments, even if all traffic is traversing trusted internal networks. You can secure both the client and the daemon. Securing the client forces the client to only connect to Docker daemons with certiﬁcates signed by a trusted Certiﬁcate Authority (CA). Securing the daemon forces the daemon to only accept connections from clients presenting certiﬁcates from a trusted CA. A combination of both modes offers the most security.
 
@@ -289,8 +287,7 @@ An insecure conﬁguration like this might be suitable for labs, but it’s unac
 
 A container is the runtime instance of an image. In the same way that you can start a virtual machine (VM) from a virtual machine template, you start one or more containers from a single image. The big difference between a VM and a container is that containers are faster and more lightweight — instead of running a full-blown OS like a VM, containers share the OS/kernel with the host they’re running on. It’s also common for containers to be based on minimalist images that only include software and dependencies required by the application.
 
-Figure shows a single Docker image being used to start multiple Docker containers.
-Figure koy
+<img src=".\images\DockerContainers.png" style="width:75%; height: 75%;">
 
 The simplest way to start a container is with the docker container run command. The command can take a lot of arguments, but in its most basic form you tell it an image to use and a app to run: docker container run image app. The following command will start an Ubuntu Linux container running the Bash shell as its app.
 
@@ -312,13 +309,13 @@ Containers and VMs both need a host to run on. This can be anything from your la
 
 Anyway… let’s assume a requirement where your business has a single physical server that needs to run 4 business applications. In the VM model, the physical server is powered on and the hypervisor boots (we’re skipping the BIOS and bootloader code etc.). Once booted, the hypervisor lays claim to all physical resources on the system such as CPU, RAM, storage, and NICs. It then carves these hardware resources into virtual versions that look smell and feel exactly like the real thing. It then packages them into a software construct called a virtual machine (VM). We take those VMs and install an operating system and application on each one. Assuming the scenario of a single physical server that needs to run 4 business applications, we’d create 4 VMs, install 4 operating systems, and then install the 4 applications. 
 
-Figure koy
+<img src=".\images\ContainerVsVMs.png" style="width:75%; height: 75%;">
 
 Things are a bit different in the container model. The server is powered on and the OS boots. In the Docker world this can be Linux, or a modern version of Windows that supports the container primitives in its kernel. Similar to the VM model, the OS claims all hardware resources. On top of the OS, we install a container engine such as Docker. The container engine then takes **OS resources** such as the *process tree*, the *ﬁlesystem*, and the *network stack*, and carves them into isolated constructs called *containers*. Each container looks smells and feels just like a real OS. Inside of each *container* we run an application.
 
-If we assume the same scenario of a single physical server needing to run 4 business applications, we’d carve the OS into 4 containers and run a single application inside each. This is shown in Figure 7.3.
+If we assume the same scenario of a single physical server needing to run 4 business applications, we’d carve the OS into 4 containers and run a single application inside each. 
 
-Figure koy
+<img src=".\images\ContainerVsVMs2.png" style="width:75%; height: 75%;">
 
 At a high level, hypervisors perform **hardware virtualization** — they carve up physical hardware resources into virtual versions called VMs. On the other hand, containers perform **OS virtualization** — they carve OS resources into virtual versions called containers.
 
@@ -576,7 +573,7 @@ Containers are all about making apps simple to **build**, **ship**, and **run**.
 
 Once your app is containerized (made into a container image), you’re ready to share it and run it as a container.
 
-Figure koy
+<img src=".\images\Containerizing.png" style="width:75%; height: 75%;">
 
 
 **Containerize a single-container app**
@@ -647,7 +644,7 @@ All Dockerﬁles start with the FROM instruction. This will be the base layer of
 
 Next, the Dockerﬁle uses the WORKDIR instruction to set the working directory inside the image ﬁlesystem for the rest of the instructions in the ﬁle. This instruction does not create a new image layer. Then the RUN npm install instruction creates a new layer and uses npm to install application dependencies listed in the package.json ﬁle in the build context. It runs within the context of the WORKDIR set in the previous instruction, and installs the dependencies into the newly created layer. 
 
-Figure koy 
+<img src=".\images\Dockerfile.png" style="width:75%; height: 75%;">
 
 The application exposes a web service on TCP port 8080, so the Dockerﬁle documents this with the EXPOSE 8080 instruction. This is added as image metadata and not an image layer. Finally, the ENTRYPOINT instruction is used to set the main application that the image (container) should run. This is also added as metadata and not an image layer.
 
@@ -694,7 +691,7 @@ Now we can push it to Docker Hub. You can’t push images to repos in my Docker 
 $ docker image push repo_name/web:latest
 ```
 
-Figure koy
+<img src=".\images\DockerRepo.png" style="width:75%; height: 75%;">
 
 Now that the image is pushed to a registry, you can access it from anywhere with an internet connection. You can also grant other people access to pull it and push changes. The examples in the rest of the chapter will use the shorter of the two image tags (web:latest).
 
@@ -778,7 +775,7 @@ When building an image, Docker steps through the instructions in your Dockerfile
 
 Squashing an image isn’t really a best practice as it has pros and cons. At a high level, Docker follows the normal process to build an image, but then adds an additional step that squashes everything into a single layer. Squashing can be good in situations where images are starting to have a lot of layers and this isn’t ideal. An example might be when creating a new base image that you want to build other images from in the future — this base is much better as a single-layer image. On the negative side, squashed images do not share image layers. This can result in storage ineﬃciencies and larger push and pull operations. Add the --squash ﬂag to the docker image build command if you want to create a squashed image. The squashed image will also need to send every byte to Docker Hub on a docker image push command, whereas the non-squashed image only needs to send unique layers.
 
-Figure koy
+<img src=".\images\ContainerSquash.png" style="width:75%; height: 75%;">
 
 **Use no-install-recommends**
 
