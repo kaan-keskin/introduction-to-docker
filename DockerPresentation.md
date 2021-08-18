@@ -40,7 +40,6 @@ At the time of writing, the OCI has published two specifications (standards) -
 An analogy that’s often used when referring to these two standards is rail tracks. these two standards are like agreeing on standard sizes and properties of rail tracks, leaving everyone else free to build better trains, better carriages, better signalling systems, better stations… all safe in the knowledge that they’ll work on the standardized tracks. Nobody wants two competing standards for rail track sizes! It’s fair to say that the two OCI speciﬁcations have had a major impact on the architecture and design of the core Docker product. As of Docker 1.11, the Docker Engine architecture conforms to the OCI runtime spec. The OCI is organized under the auspices of the Linux Foundation.
 
 
-
 **3: Installing Docker**
 
 There are lots of ways and places to install Docker. There’s Windows, Mac, and Linux. You can install in the cloud, on premises, and on your laptop. And there are manual installs, scripted installs, wizard-based installs.
@@ -49,13 +48,11 @@ There are lots of ways and places to install Docker. There’s Windows, Mac, and
 • Docker Desktop installs on
 
 **–** Windows 10
-
 **–** Mac
 
 • Server installs on
 
 **–** Linux
-
 **–** Windows Server 2019
 
 
@@ -77,52 +74,41 @@ The installer can enable the Hyper-V and Containers features, but it’s your re
 
 **Installing Docker Desktop on Windows 10**
 
-Perform a google search for “install Docker Desktop”. This will take you to the relevant download page where you can download the installer and follow the instructions. It’s that simple!
-
-Once it’s up and running you can open a PowerShell prompt and type some simple docker commands.
-
-`$ docker version`
-
-
+Perform a google search for “install Docker Desktop”. This will take you to the relevant download page where you can download the installer and follow the instructions. Once it’s up and running you can open a PowerShell prompt and type some simple docker commands.
+```sh
+$ docker version
+```
 Notice the output is showing OS/Arch: linux/amd64 for the **Server** component. This is because a default installation assumes you’ll be working with Linux containers. It does this by running the Docker daemon inside of a lightweight Linux Hyper-V VM.
-
-`C:\> docker version`
-
+```sh
+C:\> docker version
+```
 You can now run and manage Windows containers (containers running Windows applications).
 
 **Installing Docker Desktop on Mac**
 
-Download the installer and follow the step-by-step instructions.
-
-Once the installation is complete you may have to manually start Docker Desktop from the MacOS Launchpad.
-
-Open a terminal window and run some regular Docker commands. Try the following.
-
-`$ docker version`
-
+Download the installer and follow the step-by-step instructions. Once the installation is complete you may have to manually start Docker Desktop from the MacOS Launchpad. Open a terminal window and run some regular Docker commands. Try the following.
+```sh
+$ docker version
+```
 Notice that the OS/Arch: for the **Server** component is showing as linux/amd64. This is because the daemon is running inside of the Linux VM we mentioned earlier. The **Client** component is a native Mac application and runs directly on the Mac OS Darwin kernel (OS/Arch: darwin/amd64).
-
 
 **Installing Docker on Linux**
 
 There are lots of ways to install Docker on Linux and most of them are easy. 
 
 1. Update the apt package index.
-
-`$ sudo apt-get update`
-
-
+```sh
+$ sudo apt-get update
+```
 2. Install Docker from the oﬃcial repo.
-
-`$ sudo apt-get install docker.io`
-
-
+```sh
+$ sudo apt-get install docker.io
+```
 Docker is now installed and you can test by running some commands.
-
-`$ sudo docker --version`
-
-`$ sudo docker info`
-
+```sh
+$ sudo docker --version
+$ sudo docker info
+```
 
 
 **Installing Docker on Windows Server 2019**
@@ -130,21 +116,20 @@ Docker is now installed and you can test by running some commands.
 Most of the public cloud platforms offer off-the-shelf copies of Windows Server 2019 with Docker pre- installed. Simply choose one of these – such as Microsoft Windows Server 2019 Base with Containers - ami-0b809eef92577a4f1 on AWS – and you’re good to go.
 
 1. Install the Docker Provider
-
-`PS C:\> Install-Module DockerMsftProvider -Force`
-
+```sh
+PS C:\> Install-Module DockerMsftProvider -Force
+```
 2. Install Docker
-
-`PS C:\> Install-Package Docker -ProviderName DockerMsftProvider -Force`
-
+```sh
+PS C:\> Install-Package Docker -ProviderName DockerMsftProvider -Force
+```
 Contains Docker EE for use with Windows Server.
-
 3. Restart your machine
 
 Congratulations, Docker is now installed and conﬁgured to automatically start when the system boots. Run some commands to verify Docker is working.
-
-`PS C:\> docker version`
-
+```sh
+PS C:\> docker version
+```
 Docker is now installed and you are ready to start using Windows containers.
 
 **Play with Docker**
@@ -158,10 +143,7 @@ Sometimes performance can be slow, but for a free-to-use service it is excellent
 
 **5: The Docker Engine**
 
-The *Docker engine* is the core software that runs and manages containers. We often refer to it simply as *Docker*. If you know a thing or two about VMware, it might be useful to think of it as being like ESXi. The Docker engine is modular in design and built from many small specialised tools. Where possible, these are based on open standards such as those maintained by the Open Container Initiative (OCI).
-
-In many ways, the Docker Engine is like a car engine — both are modular and created by connecting many small specialized parts:
-
+The *Docker engine* is the core software that runs and manages containers. We often refer to it simply as *Docker*. If you know a thing or two about VMware, it might be useful to think of it as being like ESXi. The Docker engine is modular in design and built from many small specialised tools. Where possible, these are based on open standards such as those maintained by the Open Container Initiative (OCI). In many ways, the Docker Engine is like a car engine — both are modular and created by connecting many small specialized parts:
 • A car engine is made from many specialized parts that work together to make a car drive — intake manifolds, throttle body, cylinders, spark plugs, exhaust manifolds etc.
 
 • The Docker Engine is made from many specialized tools that work together to create and run containers
@@ -176,9 +158,7 @@ When Docker was ﬁrst released, the Docker engine had two major components:
 • The Docker daemon (hereafter referred to as just “the daemon”)
 • LXC
 
-The Docker daemon was a monolithic binary. It contained all of the code for the Docker client, the Docker API, the container runtime, image builds, and **much** more.
-
-LXC provided the daemon with access to the fundamental building-blocks of containers that existed in the Linux kernel. Things like *namespaces* and *control groups (cgroups)*.
+The Docker daemon was a monolithic binary. It contained all of the code for the Docker client, the Docker API, the container runtime, image builds, and **much** more. LXC provided the daemon with access to the fundamental building-blocks of containers that existed in the Linux kernel. Things like *namespaces* and *control groups (cgroups)*.
 
 <img src=".\images\DockerEngineLXC.png" style="width:75%; height: 75%;">
 
@@ -223,9 +203,9 @@ containerd is available as a daemon for Linux and Windows, and Docker has been u
 **Starting a new container (example)**
 
 Now that we have a view of the big picture, and some of the history, let’s walk through the process of creating a new container. The most common way of starting containers is using the Docker CLI. The following docker container run command will start a simple new container based on the alpine:latest image.
-
-`$ docker container run --name ctr1 -it alpine:latest sh`
-
+```sh
+$ docker container run --name ctr1 -it alpine:latest sh
+```
 When you type commands like this into the Docker CLI, the Docker client converts them into the appropriate API payload and POSTs them to the API endpoint exposed by the Docker daemon. The API is implemented in the daemon and can be exposed over a local socket or the network. On Linux the socket is /var/run/docker.sock and on Windows it’s \pipe\docker\_engine. Once the daemon receives the command to create a new container, it makes a call to containerd. Remember that the daemon no-longer contains any code to create containers! Despite its name, *containerd* cannot actually create containers. It uses *runc* to do that. It converts the required Docker image into an OCI bundle and tells runc to use this to create a new container. runc interfaces with the OS kernel to pull together all of the constructs necessary to create a container (namespaces, cgroups etc.). The container process is started as a child-process of runc, and as soon as it is started runc will exit.
 
 <img src=".\images\DockerEngineShim.png" style="width:75%; height: 75%;">
@@ -290,17 +270,13 @@ A container is the runtime instance of an image. In the same way that you can st
 <img src=".\images\DockerContainers.png" style="width:75%; height: 75%;">
 
 The simplest way to start a container is with the docker container run command. The command can take a lot of arguments, but in its most basic form you tell it an image to use and a app to run: docker container run image app. The following command will start an Ubuntu Linux container running the Bash shell as its app.
-
-`$ docker container run -it ubuntu /bin/bash`
-
-
-In each of the examples, the -it ﬂags will connect your current terminal window to the container’s shell. Containers run until the app they are executing exits. In the previous examples, the Linux container will exit when the Bash shell exits, and the Windows container will exit when the PowerShell process terminates.
-
-A simple way to demonstrate this is to start a new container and tell it to run the sleep command for 10 seconds.
-
-`$ docker container run -it alpine:latest sleep 10`
-
-
+```sh
+$ docker container run -it ubuntu /bin/bash
+```
+In each of the examples, the -it ﬂags will connect your current terminal window to the container’s shell. Containers run until the app they are executing exits. In the previous examples, the Linux container will exit when the Bash shell exits, and the Windows container will exit when the PowerShell process terminates. A simple way to demonstrate this is to start a new container and tell it to run the sleep command for 10 seconds.
+```sh
+$ docker container run -it alpine:latest sleep 10
+```
 You can manually stop a running container with the docker container stop command. You can then restart it with docker container start. To get rid of a container forever, you have to explicitly delete it with docker container rm.
 
 **Containers vs VMs**
@@ -361,14 +337,7 @@ The long number after the @ is the ﬁrst 12 characters of the container’s uni
 
 ```sh
 root@50949b614477:/# ls -l
-
-total 64
-
-lrwxrwxrwx
-
 root@50949b614477:/# ping 
-
-bash: ping: command not found
 ```
 
 As you can see, the ping utility is not included as part of the oﬃcial Ubuntu image.
@@ -394,8 +363,6 @@ It’s important to understand that this container is still running and you can 
 
 ```sh
 $ docker container exec -it 50949b614477 bash
-
-root@50949b614477:/#
 ```
 
 As you can see, the shell prompt has changed back to the container. If you run the ps -elf command again you will now see **two** Bash processes. This is because the docker container exec command created a new Bash or PowerShell process and attached to that. This means typing exit in this shell will not terminate the container, because the original Bash or PowerShell process will continue running.
@@ -413,29 +380,21 @@ The containers started in the previous examples will no longer be present on you
 In this section, we’ll look at the lifecycle of a container — from birth, through work and vacations, to eventual death. We’ve already seen how to start containers with the docker container run command. Let’s start another one so we can walk it through its entire lifecycle. The following examples will be from a Linux Docker host running an Ubuntu container. 
 ```sh
 $ docker container run --name percy -it ubuntu:latest /bin/bash
-
-root@9cb2d2fd1d65:/#
 ```
 That's the container created, and we named it “percy” for persistent. Now let’s put it to work by writing some data to it. The following procedure writes some text to a new ﬁle in the /tmp directory and veriﬁes the operation succeeded. Be sure to run these commands from within the container you just started.
 
 ```sh
 root@9cb2d2fd1d65:/# cd tmp
-
 root@9cb2d2fd1d65:/tmp# ls -l
-
 root@9cb2d2fd1d65:/tmp# echo "Sunderland is the greatest football team in the world" > newfile
-
 root@9cb2d2fd1d65:/tmp# ls -l
-
 root@9cb2d2fd1d65:/tmp# cat newfile
 ```
-
 Now use the docker container stop command to stop the container and put in on *vacation*.
 ```sh
 $ docker container stop percy
 ```
-
-You can use the container’s name or ID with the docker container stop command. The format is `docker container stop <container-id or container-name> ``. Now run a docker container ls command to list all running containers.
+You can use the container’s name or ID with the docker container stop command. The format is `docker container stop <container-id or container-name>`. Now run a docker container ls command to list all running containers.
 ```sh
 $ docker container ls
 ```
@@ -446,21 +405,16 @@ $ docker container ls -a
 Now we can see the container showing as Exited (0). Stopping a container is like stopping a virtual machine. Although it’s not currently running, its entire conﬁguration and contents still exist on the local ﬁlesystem of the Docker host. This means it can be restarted at any time. Let’s use the docker container start command to bring it back from vacation.
 ```sh
 $ docker container start percy
-
 $ docker container ls
 ```
 The stopped container is now restarted. Time to verify that the ﬁle we created earlier still exists. Connect to the restarted container with the docker container exec command.
 ```sh
 $ docker container exec -it percy bash
-
-root@9cb2d2fd1d65:/#
 ```
 Your shell prompt will change to show that you are now operating within the namespace of the container. Verify the ﬁle you created earlier is still there and contains the data you wrote to it.
 ```sh
 root@9cb2d2fd1d65:/# cd tmp
-
 root@9cb2d2fd1d65:/# ls -l
-
 root@9cb2d2fd1d65:/# cat newfile
 ```
 
@@ -474,9 +428,7 @@ Now let’s kill the container and delete it from the system. You can delete a *
 
 ```sh
 $ docker container stop percy
-
 $ docker container rm percy
-
 $ docker container ls -a
 ```
 
@@ -511,15 +463,12 @@ See how the container was created 35 seconds ago, but has only been up for 9 sec
 1. Create the two new containers
 ```sh
 $ docker container run -d --name always --restart always alpine sleep 1d
-
 $ docker container run -d --name unless-stopped --restart unless-stopped alpine sleep 1d
-
 $ docker container ls
 ```
 2. Stop both containers
 ```sh
 $ docker container stop always unless-stopped
-
 $ docker container ls -a
 ```
 3. Restart Docker.
@@ -527,7 +476,6 @@ $ docker container ls -a
 The process for restarting Docker is different on different Operating Systems. This example shows how to stop Docker on Linux hosts running systemd. To restart Docker on Windows Server 2016 use restart-service Docker.
 ```sh
 $ systemlctl restart docker
-
 $ docker container ls -a
 ```
 
@@ -605,15 +553,14 @@ The application used in this example is available on GitHub at:
 • https://github.com/nigelpoulton/psweb.git
 
 Clone the sample app from GitHub.
-
+```sh
 $ git clone https://github.com/nigelpoulton/psweb.git
-
+```
 The clone operation creates a new directory called psweb. Change directory into psweb and list its contents.
-
+```sh
 $ cd psweb
-
 $ ls -l
-
+```
 This directory contains all of the application source code, as well as subdirectories for views and unit tests. Feel free to look at the ﬁles — the app is extremely simple. We won’t be using the unit tests in this chapter. Now that we have the app code, let’s look at its Dockerﬁle.
 
 **Inspecting the Dockerﬁle**
@@ -621,22 +568,6 @@ This directory contains all of the application source code, as well as subdirect
 A **Dockerﬁle** is the starting point for creating a container image — it describes an application and tells Dockerhow to build it into an image. The directory containing the application and dependencies is referred to as the *build context*. It’s a common practice to keep your Dockerﬁle in the root directory of the *build context*. It’s also important that **Dockerﬁle** starts with a capital “**D**” and is all one word. “Dockerﬁle” and “Docker ﬁle” are not valid. Let’s look at the contents of the Dockerﬁle.
 ```sh
 $ cat Dockerfile
-
-FROM alpine
-
-LABEL maintainer="nigelpoulton@hotmail.com"
-
-RUN apk add --update nodejs nodejs-npm
-
-COPY . /src
-
-WORKDIR /src
-
-RUN npm install
-
-EXPOSE 8080
-
-ENTRYPOINT ["node", "./app.js"]
 ```
 Do not underestimate the impact of the Dockerﬁle as a form of documentation. It’s a great document for bridging the gap between dev and ops. It also has the power to speed up on-boarding of new developers etc. This is because the ﬁle accurately describes the application and its dependencies in an easy-to-read format. You should treat it like you treat source code and check it into a version control system.
 
@@ -739,7 +670,7 @@ It is considered a good practice to use images from official repositories with t
 
 When it comes to Docker images, big is bad! Big means slow. Big means hard to work with. And big means more potential vulnerabilities and possibly a bigger attack surface! For these reasons, Docker images should be small. The aim of the game is to only ship production images with the stuff **needed** to run your app in production. The problem is… keeping images small *was* hard work. For example, the way you write your Dockerﬁles has a huge impact on the size of your images. A common example is that every RUN instruction adds a new layer. As a result, it’s usually considered a best practice to include multiple commands as part of a single RUN instruction — all glued together with double-ampersands (&&) and backslash (\) line-breaks. While this isn’t rocket science, it requires time and discipline. Another issue is that we don’t clean up after ourselves. We’ll RUN a command against an image that pulls some build-time tools, and we’ll leave all those tools in the image when we ship it to production. Not ideal! Multi-stage builds to the rescue! Multi-stage builds are all about optimizing builds without adding complexity. And they deliver on the promise! Here’s the high-level…
 
-Multi-stage builds have a single Dockerﬁle containing multiple FROM instructions. Each FROM instruction is a new **build stage** that can easily COPY artefacts from previous **stages**. Let’s look at an example! This example app is available at https://github.com/nigelpoulton/atsea-sample-shop-app.git and the Dockerﬁle is in the app directory. It’s a Linux-based application so, will only work on a Linux Docker host. It’s also quite old, so don’t deploy it to an important system, and be sure to delete it as soon as you’re ﬁnished. The ﬁrst thing to note is that the Dockerﬁle has three FROM instructions. Each of these constitutes a distinct **build stage**. Internally, they’re numbered from the top starting at 0. However, we’ve also given each stage a friendly name.
+Multi-stage builds have a single Dockerﬁle containing multiple FROM instructions. Each FROM instruction is a new **build stage** that can easily COPY artefacts from previous **stages**. Example app is available at https://github.com/nigelpoulton/atsea-sample-shop-app.git and the Dockerﬁle is in the app directory. It’s a Linux-based application so, will only work on a Linux Docker host. It’s also quite old, so don’t deploy it to an important system, and be sure to delete it as soon as you’re ﬁnished. The ﬁrst thing to note is that the Dockerﬁle has three FROM instructions. Each of these constitutes a distinct **build stage**. Internally, they’re numbered from the top starting at 0. However, we’ve also given each stage a friendly name.
 
 • Stage 0 is called storefront
 
@@ -866,30 +797,24 @@ $ docker volume rm bizvol
 The volume is brand new, so it doesn’t have any data. Let’s exec onto the container and write some data to it.
 ```sh
 $ docker container exec -it voltainer sh
-
-/# echo "I promise to write a review of the book on Amazon" > /vol/file1
-
-/# ls -l /vol
-
-/# cat /vol/file1
+# echo "I promise to write a review of the book on Amazon" > /vol/file1
+# ls -l /vol
+# cat /vol/file1
 ```
 Type exit to return to the shell of your Docker host, and then delete the container with the following command.
 ```sh
 $ docker container rm voltainer -f
 ```
-
 Even though the container is deleted, the volume still exists:
 ```sh
 $ docker container ls -a
 $ docker volume ls
 ```
-
 Because the volume still exists, you can look at its mount point on the host to check if the data is still there. Run the following commands from the terminal of your Docker host. The ﬁrst one will show that the ﬁle still exists, the second will show the contents of the ﬁle.
 ```sh
 $ ls -l /var/lib/docker/volumes/bizvol/\_data/
 $ cat /var/lib/docker/volumes/bizvol/\_data/file1
 ```
-
 It’s even possible to mount the bizvol volume into a new service or container. The following command creates a new Docker service, called hellcat, and mounts bizvol into the service replica at /vol. You’ll need to be running in swarm mode for this command to work. If you’re running in single-engine mode you can use a docker container run command instead.
 ```sh
 $ docker service create --name hellcat --mount source=bizvol,target=/vol alpine sleep 1d
@@ -899,7 +824,6 @@ In this example, the replica is running on node1. Log on to node1 and get the ID
 ```sh
 node1$ docker container ls
 ```
-
 Notice that the container name is a combination of service-name, replica-number, and replica-ID separated by periods. Exec onto the container and check that the data is present in /vol. We’ll use the service replica’s container ID in the exec example. 
 ```sh
 node1$ docker container exec -it df6 sh
@@ -924,7 +848,7 @@ $ docker plugin install purestorage/docker-plugin:latest --alias pure --grant-al
 $ docker plugin ls
 ```
 
-1. Create a new volume with the plugin (you can also do this as part of the container creation process). This example creates a new 25GB volume called “fastvol” on the registered Pure Storage backend.
+ Create a new volume with the plugin (you can also do this as part of the container creation process). This example creates a new 25GB volume called “fastvol” on the registered Pure Storage backend.
 ```sh
 $ docker volume create -d pure -o size=25GB fastvol
 ```
@@ -962,7 +886,7 @@ $ git clone https://github.com/dockersamples/atsea-sample-shop-app.git
 
 The application consists of several directories and source ﬁles. Feel free to explore them all. However, we’re going to focus on the docker-stack.yml ﬁle that deﬁnes the app and its requirements. We’ll refer to this as the *stack ﬁle*. At the highest level, it deﬁnes 4 top-level keys; version, services, networks, secrets.
 
-**Version** indicates the version of the Compose ﬁle format. This has to be 3.0 or higher to work with stacks. **Services** is where you deﬁne the stack of services that make up the app. **Networks** lists the required networks, and **secrets** deﬁnes the secrets the app uses. If you expand each top-level key, you’ll see how things map to Figure above. The stack ﬁle has ﬁve services called “reverse\_proxy”, “database”, “appserver”, “visualizer”, and “payment\_gateway”. The stack ﬁle has three networks called “front-tier”, “back-tier”, and “payment”. So does Figure 14.1. Finally, the stack ﬁle has four secrets called “postgres\_password”, “staging\_token”, “revprox\_key”, and “revprox\_cert”. It’s important to understand that the stack ﬁle captures and deﬁnes many of the requirements of the entire application. As such, it’s self-documenting and a great tool for bridging the gap between dev and ops. 
+**Version** indicates the version of the Compose ﬁle format. This has to be 3.0 or higher to work with stacks. **Services** is where you deﬁne the stack of services that make up the app. **Networks** lists the required networks, and **secrets** deﬁnes the secrets the app uses. If you expand each top-level key, you’ll see how things map to Figure above. The stack ﬁle has ﬁve services called “reverse_proxy”, “database”, “appserver”, “visualizer”, and “payment_gateway”. The stack ﬁle has three networks called “front-tier”, “back-tier”, and “payment”. So does Figure 14.1. Finally, the stack ﬁle has four secrets called “postgres_password”, “staging_token”, “revprox_key”, and “revprox_cert”. It’s important to understand that the stack ﬁle captures and deﬁnes many of the requirements of the entire application. As such, it’s self-documenting and a great tool for bridging the gap between dev and ops. 
 
 **Looking closer at the stack ﬁle**
 
@@ -974,7 +898,7 @@ The stack ﬁle describes three networks; front-tier, back-tier, and payment. By
 
 • Pass the -o encrypted ﬂag to the docker network create command.
 
-• Specify encrypted: 'yes' under driver\_opts in the stack ﬁle.
+• Specify encrypted: 'yes' under driver_opts in the stack ﬁle.
 
 The overhead incurred by encrypting the data plane depends on various factors such traffic type and traffic ﬂow. You should perform extensive testing to understand the performance overhead that encrypting data plane traffic has on your workload. It’s not uncommon for this to be approximately 10%. As previously mentioned, all three networks will be created before the secrets and services.
 
@@ -987,9 +911,9 @@ Secrets are deﬁned as top-level objects, and the stack ﬁle we’re using de�
 
 Services are where most of the action happens. Each service is a JSON collection (dictionary) that contains a bunch of keys. We’ll step through each one and explain what each of the options does.
 
-**The reverse\_proxy service**
+**The reverse_proxy service**
 
-As you can see, the reverse\_proxy service deﬁnes an image, ports, secrets, and networks. The image key is the only mandatory key in the service object. As the name suggests, it deﬁnes the Docker image that will be used to build the replicas for the service. Remember that a service is one or more identical containers. Docker is opinionated, so unless you specify otherwise, the **image** will be pulled from Docker Hub. You can specify images from 3rd-party registries by prepending the image name with the DNS name of the registry’s API endpoint such as gcr.io for Google’s container registry. One difference between Docker Stacks and Docker Compose is that stacks do not support **builds**. This means all images have to be built prior to deploying the stack. 
+As you can see, the reverse_proxy service deﬁnes an image, ports, secrets, and networks. The image key is the only mandatory key in the service object. As the name suggests, it deﬁnes the Docker image that will be used to build the replicas for the service. Remember that a service is one or more identical containers. Docker is opinionated, so unless you specify otherwise, the **image** will be pulled from Docker Hub. You can specify images from 3rd-party registries by prepending the image name with the DNS name of the registry’s API endpoint such as gcr.io for Google’s container registry. One difference between Docker Stacks and Docker Compose is that stacks do not support **builds**. This means all images have to be built prior to deploying the stack. 
 
 The **ports** key deﬁnes two mappings:
 
@@ -1001,19 +925,15 @@ The **ports** key deﬁnes two mappings:
 By default, all ports are mapped using *ingress mode*. This means they’ll be mapped and accessible from every node in the Swarm — even nodes not running a replica. The alternative is *host mode*, where ports are only mapped on swarm nodes running replicas for the service. However, *host mode* requires you to use the long-form syntax. For example, mapping port 80 in *host mode* using the long-form syntax would be like this:
 
 ports:
+- target: 80
+- published: 80
+- mode: host
 
-\- target: 80
-
-\- published: 80
-
-\- mode: host
-
-The long-form syntax is recommended, as it’s easier to read and more powerful (it supports ingress mode **and** host mode). However, it requires at least version 3.2 of the Compose ﬁle format. The **secrets** key deﬁnes two secrets — revprox\_cert and revprox\_key. These secrets must already exist on the swarm and must also be deﬁned in the top-level secrets section of the stack ﬁle. Secrets get mounted into service replicas as a regular ﬁle. The name of the ﬁle will be whatever you specify as the target value in the stack ﬁle, and the ﬁle will appear in the replica under /run/secrets on Linux, and C:\ProgramData\Docker\secrets on Windows. Linux mounts /run/secrets as an in-memory ﬁlesystem, but Windows does not. The secrets deﬁned in this service will be mounted in each service replica as /run/secrets/revprox\_cert and /run/secrets/revprox\_key. To mount one of them as /run/secrets/uber\_secret you would deﬁne it in the stack ﬁle as follows: 
+The long-form syntax is recommended, as it’s easier to read and more powerful (it supports ingress mode **and** host mode). However, it requires at least version 3.2 of the Compose ﬁle format. The **secrets** key deﬁnes two secrets — revprox_cert and revprox_key. These secrets must already exist on the swarm and must also be deﬁned in the top-level secrets section of the stack ﬁle. Secrets get mounted into service replicas as a regular ﬁle. The name of the ﬁle will be whatever you specify as the target value in the stack ﬁle, and the ﬁle will appear in the replica under /run/secrets on Linux, and C:\ProgramData\Docker\secrets on Windows. Linux mounts /run/secrets as an in-memory ﬁlesystem, but Windows does not. The secrets deﬁned in this service will be mounted in each service replica as /run/secrets/revprox_cert and /run/secrets/revprox_key. To mount one of them as /run/secrets/uber_secret you would deﬁne it in the stack ﬁle as follows: 
 secrets:
 
-\- source: revprox\_cert
-
-\- target: uber\_secret
+- source: revprox_cert
+- target: uber_secret
 
 The **networks** key ensures that all replicas for the service will be attached to the front-tier network. The network speciﬁed here must be deﬁned in the networks top-level key, and if it doesn’t already exist, Docker will create it as an overlay.
 
@@ -1037,7 +957,7 @@ Notice that == and != are both supported.
 
 **The appserver service**
 
-The appserver service uses an image, attaches to three networks, and mounts a secret. It also introduces several additional features under the deploy key. Let’s take a closer look at the new stuff under the deploy key.First up, services.appserver.deploy.replicas = 2 will set the desired number of replicas for the service to 2. If omitted, the default value is 1. If you need to change the number of replicas after you’ve deployed the service, you should do so declaratively. This means updating services.appserver.deploy.replicas ﬁeld in the stack ﬁle with the new value, and then redeploying the stack. We’ll see this later, but re-deploying a stack does not affect services that you haven’t made a change to. services.appserver.deploy.update\_config tells Docker how to act when updating the service. For this service, Docker will update two replicas at-a-time (parallelism) and will perform a ‘rollback’ if it detects the update is failing. Rolling back will start new replicas based on the previous deﬁnition of the service. The default value for failure\_action is pause, which will stop further replicas being updated. The other option is continue. You specify other options as part of update\_config. These include inserting a delay, a failure monitor period, and controlling the order of starting updated replicas before terminating older replicas or vice versa. The services.appserver.deploy.restart-policy object tells Swarm how to restart replicas (containers) if and when they fail. The policy for this service will restart a replica if it stops with a non-zero exit code (condition: on-failure). It will try to restart the failed replica 3 times, and wait up to 120 seconds to decide if the restart worked. It will wait 5 seconds between each of the three restart attempts. 
+The appserver service uses an image, attaches to three networks, and mounts a secret. It also introduces several additional features under the deploy key. Let’s take a closer look at the new stuff under the deploy key.First up, services.appserver.deploy.replicas = 2 will set the desired number of replicas for the service to 2. If omitted, the default value is 1. If you need to change the number of replicas after you’ve deployed the service, you should do so declaratively. This means updating services.appserver.deploy.replicas ﬁeld in the stack ﬁle with the new value, and then redeploying the stack. We’ll see this later, but re-deploying a stack does not affect services that you haven’t made a change to. services.appserver.deploy.update_config tells Docker how to act when updating the service. For this service, Docker will update two replicas at-a-time (parallelism) and will perform a ‘rollback’ if it detects the update is failing. Rolling back will start new replicas based on the previous deﬁnition of the service. The default value for failure_action is pause, which will stop further replicas being updated. The other option is continue. You specify other options as part of update_config. These include inserting a delay, a failure monitor period, and controlling the order of starting updated replicas before terminating older replicas or vice versa. The services.appserver.deploy.restart-policy object tells Swarm how to restart replicas (containers) if and when they fail. The policy for this service will restart a replica if it stops with a non-zero exit code (condition: on-failure). It will try to restart the failed replica 3 times, and wait up to 120 seconds to decide if the restart worked. It will wait 5 seconds between each of the three restart attempts. 
 
     restart_policy:
         condition: on-failure
@@ -1063,7 +983,7 @@ The visualizer service references an image, maps a port, deﬁnes an update con�
                 constraints:
                     - 'node.role == manager'
 
-When Docker stops a container, it issues a SIGTERM to the application process with PID 1 inside the container. The application then has a 10-second grace period to perform any clean-up operations. If it doesn’t handle the signal, it will be forcibly terminated after 10 seconds with a SIGKILL. The stop\_grace\_period property overrides this 10 second grace period. The volumes key is used to mount pre-created volumes and host directories into a service replica. In this case, it’s mounting /var/run/docker.sock from the Docker host, into /var/run/docker.sock inside of each service replica. This means any reads and writes to /var/run/docker.sock in the replica will be passed through to the same directory in the host. /var/run/docker.sock happens to be the IPC socket that the Docker daemon exposes all of its API endpoints on. This means giving a container access to it gives the container the ability to issue commands to the Docker daemon. This has signiﬁcant security implications and is not recommended in the real world. Fortunately, this is just a demo app in a lab environment. The reason this service requires access to the Docker daemon is because it provides a graphical representation of services on the Swarm. To do this, it needs to be able to query the Docker daemon on a manager node. To accomplish this, a placement constraint forces all service replicas onto manager nodes, and the Docker socket is bind-mounted into each service replica.
+When Docker stops a container, it issues a SIGTERM to the application process with PID 1 inside the container. The application then has a 10-second grace period to perform any clean-up operations. If it doesn’t handle the signal, it will be forcibly terminated after 10 seconds with a SIGKILL. The stop_grace_period property overrides this 10 second grace period. The volumes key is used to mount pre-created volumes and host directories into a service replica. In this case, it’s mounting /var/run/docker.sock from the Docker host, into /var/run/docker.sock inside of each service replica. This means any reads and writes to /var/run/docker.sock in the replica will be passed through to the same directory in the host. /var/run/docker.sock happens to be the IPC socket that the Docker daemon exposes all of its API endpoints on. This means giving a container access to it gives the container the ability to issue commands to the Docker daemon. This has signiﬁcant security implications and is not recommended in the real world. Fortunately, this is just a demo app in a lab environment. The reason this service requires access to the Docker daemon is because it provides a graphical representation of services on the Swarm. To do this, it needs to be able to query the Docker daemon on a manager node. To accomplish this, a placement constraint forces all service replicas onto manager nodes, and the Docker socket is bind-mounted into each service replica.
 
 **payment_gateway**
 
@@ -1178,10 +1098,9 @@ $ docker secret ls
 
 **Deploying the sample app**
 
-If you haven’t already done so, clone the app’s GitHub repo to your Swarm manager.
+Clone the app’s GitHub repo to your Swarm manager.
 ```sh
 $ git clone https://github.com/dockersamples/atsea-sample-shop-app.git
-
 $ cd atsea-sample-shop-app
 ```
 Stacks are deployed using the docker stack deploy command. In its basic form it accepts two arguments:
@@ -1198,7 +1117,6 @@ $ docker stack deploy -c docker-stack.yml seastack
 You can run  `docker network ls` and `docker service ls` commands to see the networks and services that were deployed as part of the app. A few things to note from the output of the command. The networks were created before the services. This is because the services attach to the networks, so need the networks to be created before they can start. Docker prepends the name of the stack to every resource it creates. In our example, the stack is called seastack, meaning all resources are named seastack_resource. For example, the payment network is called seastack_payment. Resources that were created prior to the deployment, such as secrets, do not get renamed. Another thing to note is the presence of a network called seastack_default. This isn’t deﬁned in the stack ﬁle, so why was it created? Every service needs to attach to a network, but the visualizer service didn’t specify one. Therefore, Docker created one called seastack_default and attached it to that. You can verify this by running a docker network inspect seastack_default command. You can verify the status of a stack with a couple of commands. docker stack ls lists all stacks on the system, including how many services they have. `docker stack ps <stack-name>` gives more detailed information about a particular stack, such as *desired state* and *current state*. 
 ```sh
 $ docker stack ls
-
 $ docker stack ps seastack
 ```
 
@@ -1255,8 +1173,6 @@ $ docker stack rm seastack
 ```
 
 Notice that the networks and services were deleted, but the secrets weren’t. This is because the secrets were pre- created and existed before the stack was deployed. If your stack deﬁnes volumes at the top-level, these will not be deleted by `docker stack rm` either. This is because volumes are intended as long-term persistent data stores and exist independent of the lifecycle of containers, services, and stacks.
-
-
 
 
 **15: Security in Docker**
