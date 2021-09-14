@@ -1,63 +1,62 @@
-# Part 1: The big picture stuﬀ
+# Introduction to Docker - Part 1
 
-## 1: Containers from 30,000 feet
+Editors: **Taha Osman Sarıaslan, Semih Teker, Kaan Keskin**
 
-Containers are deﬁnitely a *thing*.
+Date: September 2021
 
+Available at: https://github.com/kaan-keskin/introduction-to-docker
+
+**Resources:**
+
+- Docker Deep Dive - Zero to Docker in a single book - Nigel Poulton @nigelpoulton
+- Wikipedia - www.wikipedia.com
+
+**Content**
+- Introduction
+- Docker
+- The Big Picture
+
+## Introduction
 
 ### The bad old days
 
-Applications are at the heart of businesses. If applications break, businesses break. Sometimes they even go bust. These statements get truer every day! Most applications run on servers. **In the past we could only run one application per server.** The open-systems world of Windows and Linux just didn’t have the technologies to safely and securely run multiple applications on the same server. 
+Applications are at the heart of businesses. If applications break, businesses break. Sometimes they even go burst. These statements get truer every day! Most applications run on servers. **In the past we could only run one application per server.** The open-systems world of Windows and Linux just didn’t have the technologies to safely and securely run multiple applications on the same server. 
 
-As a result, the story went something like this… Every time the business needed a new application, the IT department would buy a new server. Most of the time nobody knew the performance requirements of the new application, forcing the IT department to make guesses when choosing the model and size of the server to buy. As a result, IT did the only thing it could do — it bought big fast servers that cost a lot of money. After all, the last thing anyone wanted, including the business, was under-powered servers unable to execute transactions and potentially losing customers and revenue. So, IT bought big. This resulted in over-powered servers operating as low as 5-10% of their potential capacity. **A tragic waste of company capital and environmental resources!**
+As a result, the story went something like this: Every time the business needed a new application, the IT department would buy a new server. Most of the time nobody knew the performance requirements of the new application, forcing the IT department to make guesses when choosing the model and size of the server to buy. As a result, IT did the only thing it could do — it bought big fast servers that cost a lot of money. After all, the last thing anyone wanted, including the business, was under-powered servers unable to execute transactions and potentially losing customers and revenue. So, IT bought big. This resulted in over-powered servers operating as low as 5-10% of their potential capacity. **A tragic waste of company capital and environmental resources!**
 
+### Virtual Machines
 
-### VMware!
+Amid all of this, VMware, Inc. gave the world a gift — the virtual machine (VM). And almost overnight, the world changed into a much better place. We ﬁnally had a technology that allowed us to safely and securely run multiple business applications on a single server. This was a game changer. IT departments no longer needed to procure a brand-new oversized server every time the business needed a new application. More often than not, they could run new apps on existing servers that were sitting around with spare capacity. All of a sudden, we could squeeze massive amounts of value out of existing corporate assets.
 
-Amid all of this, VMware, Inc. gave the world a gift — the virtual machine (VM). And almost overnight, the world changed into a much better place. We ﬁnally had a technology that allowed us to safely and securely run multiple business applications on a single server. Cue wild celebrations! This was a game changer. IT departments no longer needed to procure a brand-new oversized server every time the business needed a new application. More often than not, they could run new apps on existing servers that were sitting around with spare capacity. All of a sudden, we could squeeze massive amounts of value out of existing corporate assets, resulting in a lot more bang for the company’s buck ($).
+As great as VMs are, they’re far from perfect! The fact that every VM requires its own dedicated operating system (OS) is a major ﬂaw. Every OS consumes CPU, RAM and other resources that could otherwise be used to power more applications. Every OS needs patching and monitoring. And in some cases, every OS requires a license. All of this results in wasted time and resources. The VM model has other challanges too. VMs are slow to boot, and portability isn’t great — migrating and moving VM workloads between hypervisors and cloud platforms is harder than it needs to be.
 
-But… and there’s always a *but!* As great as VMs are, they’re far from perfect! The fact that every VM requires its own dedicated operating system (OS) is a major ﬂaw. Every OS consumes CPU, RAM and other resources that could otherwise be used to power more applications. Every OS needs patching and monitoring. And in some cases, every OS requires a license. All of this results in wasted time and resources. The VM model has other challanges too. VMs are slow to boot, and portability isn’t great — migrating and moving VM workloads between hypervisors and cloud platforms is harder than it needs to be.
+### Containers
 
-
-### Hello Containers!
-
-For a long time, the big web-scale players, like Google, have been using container technologies to address the shortcomings of the VM model. In the container model, the container is roughly analogous to the VM. A major diﬀerence is that containers do not require their own full-blown OS. In fact, all containers on a single host share the host’s OS. This frees up huge amounts of system resources such as CPU, RAM, and storage. It also reduces potential licensing costs and reduces the overhead of OS patching and other maintenance. **Net result: savings on the time, resource, and capital fronts**.
+For a long time, the big web-scale players, like Google, have been using container technologies to address the shortcomings of the VM model. In the container model, the container is roughly analogous to the VM. A major diﬀerence is that containers do not require their own full-blown OS. In fact, all containers on a single host share the host’s OS Kernel. This frees up huge amounts of system resources such as CPU, RAM, and storage. It also reduces potential licensing costs and reduces the overhead of OS patching and other maintenance. **Net result: savings on the time, resource, and capital fronts**.
 
 Containers are also fast to start and ultra-portable. Moving container workloads from your laptop, to the cloud, and then to VMs or bare metal in your data center is a breeze.
 
-
 ### Linux containers
 
-Modern containers started in the Linux world and are the product of an immense amount of work from a wide variety of people over a long period of time. Just as one example, Google LLC has contributed many container-related technologies to the Linux kernel. Without these, and other contributions, we wouldn’t have modern containers today.
+Modern containers started in the Linux world and are the product of an immense amount of work from a wide variety of people over a long period of time. Just as one example, **Google LLC** has contributed many container-related technologies to the Linux kernel. Without these, and other contributions, we wouldn’t have modern containers today.
 
 Some of the major technologies that enabled the massive growth of containers in recent years include; **kernel namespaces**, **control groups**, **union ﬁlesystems**, and of course **Docker**. To re-emphasize what was said earlier — the modern container ecosystem is deeply indebted to the many individuals and organizations that laid the strong foundations that we currently build on. Thank you!
 
 Despite all of this, containers remained complex and outside of the reach of most organizations. It wasn’t until Docker came along that containers were eﬀectively democratized and cessible to the masses.
 
-    Note: 
-    There are many operating system virtualization technologies similar to containers that pre-date Docker and modern containers. Some even date back to System/360 on the Mainframe. BSD Jails and Solaris Zones are some other well-known examples of Unix-type container technologies.
-
-However, in this book we are restricting our conversation to *modern containers* made popular by Docker.
-
-
-### Hello Docker!
-
 Docker was the magic that made Linux containers usable for mere mortals. Put another way, Docker, Inc. made containers simple!
-
 
 **Windows containers**
 
 Over the past few years, Microsoft Corp. has worked extremely hard to bring Docker and container technologies to the Windows platform. At the time of writing, Windows containers are available on the Windows desktop and Windows Server platforms (certain versions of Windows 10 and later, and Windows Server 2016 and later). In achieving this, Microsoft has worked closely with Docker, Inc. and the open-source community.
 
-The core Windows kernel technologies required to implement containers are collectively referred to as *Windows Containers*. The user-space tooling to work with these *Windows Containers* can be Docker. This makes the Docker experience on Windows almost exactly the same as Docker on Linux. This way developers and sysadmins familiar with the Docker toolset from the Linux platform can feel at home using Windows containers. **This revision of the book includes a mix of Linux and Windows examples.**
-
+The core Windows kernel technologies required to implement containers are collectively referred to as *Windows Containers*. The user-space tooling to work with these *Windows Containers* can be Docker. This makes the Docker experience on Windows almost exactly the same as Docker on Linux. This way developers and sysadmins familiar with the Docker toolset from the Linux platform can feel at home using Windows containers. 
 
 **Windows containers vs Linux containers**
 
 It’s vital to understand that a running container shares the kernel of the host machine it is running on. This means that a containerized Windows app will not run on a Linux-based Docker host, and vice-versa — Windows containers require a Windows host, and Linux containers require a Linux host. 
 
-Only… it’s not always that simple. It is possible to run Linux containers on Windows machines. For example, Docker Desktop running on Windows has two modes — “Windows containers” and “Linux containers”. Depending on your version of Docker Desktop, Linux container run either inside a lightweight Hyper-V VM or using the Windows Subsystem for Linux (WSL). The WSL option is newer and the strategic option for the future as it doesn’t require a Hyper-V VM and oﬀers better performance and compatibility.
-
+It is possible to run Linux containers on Windows machines. For example, Docker Desktop running on Windows has two modes — “Windows containers” and “Linux containers”. Depending on your version of Docker Desktop, Linux container run either inside a lightweight Hyper-V VM or using the Windows Subsystem for Linux (WSL). The WSL option is newer and the strategic option for the future as it doesn’t require a Hyper-V VM and oﬀers better performance and compatibility.
 
 **What about Mac containers?**
 
@@ -65,25 +64,20 @@ There is currently no such thing as Mac containers.
 
 However, you can run Linux containers on your Mac using *Docker Desktop*. This works by seamlessly running your containers inside of a lightweight Linux VM on your Mac. It’s extremely popular with developers, who can easily develop and test Linux containers on their Mac.
 
-
 **What about Kubernetes**
 
 Kubernetes is an open-source project out of Google that has quickly emerged as the de facto orchestrator of containerized apps. That's just a fancy way of saying *Kubernetes is the most popular tool for deploying and managing containerized apps*.
 
     Note: 
-    A containerized app is an application running as a container. At the time of writing, Kubernetes uses Docker as its default container runtime — the low-level technology that pulls images and starts and stops containers. However, Kubernetes has a pluggable container runtime interface (CRI) that makes it easy to swap-out Docker for a diﬀerent container runtime. In the future, Docker might be replaced by containerd as the default container runtime in Kubernetes. More on containerd later in the book, but for now it’s enough to know that containerd is the small specialized part of Docker that does the low-level tasks of starting and stopping containers.
-
+    A containerized app is an application running as a container. At the time of writing, Kubernetes uses Docker as its default container runtime — the low-level technology that pulls images and starts and stops containers. However, Kubernetes has a pluggable container runtime interface (CRI) that makes it easy to swap-out Docker for a diﬀerent container runtime. In the future, Docker might be replaced by containerd as the default container runtime in Kubernetes. For now it’s enough to know that containerd is the small specialized part of Docker that does the low-level tasks of starting and stopping containers.
 
 The important thing to know about Kubernetes, at this stage, is that it’s a higher-level platform than Docker, and it currently uses Docker for its low-level container-related operations. 
 
+## Docker
 
+Docker is software that runs on Linux and Windows. It creates, manages, and can even orchestrate containers. The software is currently built from various tools from the **Moby** open-source project. Docker, Inc. is the company that created the technology and continues to create technologies and solutions that make it easier to get the code on your laptop running in the cloud.
 
-## 2: Docker
-
-Docker is software that runs on Linux and Windows. It creates, manages, and can even orchestrate containers. The software is currently built from various tools from the *Moby* open-source project. Docker, Inc. is the company that created the technology and continues to create technologies and solutions that make it easier to get the code on your laptop running in the cloud.
-
-
-**The Docker technology**
+### The Docker Technology
 
 When most people talk about Docker, they’re referring to the technology that runs containers. However, there are at least three things to be aware of when referring to Docker as a technology:
 
@@ -95,127 +89,27 @@ When most people talk about Docker, they’re referring to the technology that r
 
 <img src=".\images\TheDocker.png" style="width:75%; height: 75%;">
 
-
 The runtime operates at the lowest level and is responsible for starting and stopping containers (this includes building all of the OS constructs such as namespaces and cgroups). Docker implements a tiered runtime architecture with high-level and low-level runtimes that work together. The low-level runtime is called runc and is the reference implementation of Open Containers Initiative (OCI) runtime-spec. Its job is to interface with the underlying OS and start and stop containers. Every running container on a Docker node has a runc instance managing it. The higher-level runtime is called containerd. containerd does a lot more than runc. It manages the entire lifecycle of a container, including pulling images, creating network interfaces, and managing lower-level runc instances. containerd is pronounced “container-dee’ and is a graduated CNCF project used by Docker and Kubernetes as a container runtime.
 
-
-A typical Docker installation has a single containerd process (docker-containerd) controlling the runc (docker-runc) instances associated with each running container. The Docker daemon (dockerd) sits above containerd and performs higher-level tasks such as; exposing the Docker remote API, managing images, managing volumes, managing networks, and more…
+A typical Docker installation has a single containerd process (docker-containerd) controlling the runc (docker-runc) instances associated with each running container. The Docker daemon (dockerd) sits above containerd and performs higher-level tasks such as; exposing the Docker remote API, managing images, managing volumes, managing networks, and more.
 
 A major job of the Docker daemon is to provide an easy-to-use standard interface that abstracts the lower levels. Docker also has native support for managing clusters of nodes running Docker. These clusters are called swarms and the native technology is called Docker Swarm. Docker Swarm is easy-to-use and many companies are using it in real-world production. However, most people are choosing to use Kubernetes instead of Docker Swarm.
 
-**The Open Container Initiative (OCI)**
+### The Open Container Initiative (OCI)
 
-The OCI is a governance council responsible for standardizing the low-level fundamental components of container infrastructure. In particular it focusses on *image format* and *container runtime* (don’t worry if you’re not comfortable with these terms yet, we’ll cover them in the book). It’s also true that no discussion of the OCI is complete without mentioning a bit of history. And as with all accounts of history, the version you get depends on who’s doing the talking.
+The OCI is a governance council responsible for standardizing the low-level fundamental components of container infrastructure. In particular it focusses on **image format** and **container runtime**. It’s also true that no discussion of the OCI is complete without mentioning a bit of history. And as with all accounts of history, the version you get depends on who’s doing the talking.
 
 From day one, use of Docker grew like crazy. More and more people used it in more and more ways for more and more things. So, it was inevitable that some parties would get frustrated. This is normal and healthy.
 
-This put the container ecosystem in an awkward position with two competing standards. Getting back to the story, this threatened to fracture the ecosystem and present users and customers with a dilemma. While competition is usually a good thing, *competing standards* is usually not. They cause confusion and slowdown user adoption. Not good for anybody. With this in mind, everybody did their best to act like adults and came together to form the OCI — a lightweight agile council to govern container standards.
-At the time of writing, the OCI has published two specifications (standards) -
-• The image-spec
-• The runtime-spec
-An analogy that’s often used when referring to these two standards is rail tracks. these two standards are like agreeing on standard sizes and properties of rail tracks, leaving everyone else free to build better trains, better carriages, better signalling systems, better stations… all safe in the knowledge that they’ll work on the standardized tracks. Nobody wants two competing standards for rail track sizes! It’s fair to say that the two OCI speciﬁcations have had a major impact on the architecture and design of the core Docker product. As of Docker 1.11, the Docker Engine architecture conforms to the OCI runtime spec. The OCI is organized under the auspices of the Linux Foundation.
+This put the container ecosystem in an awkward position with two competing standards. Getting back to the story, this threatened to fracture the ecosystem and present users and customers with a dilemma. While competition is usually a good thing, **competing standards** is usually not. They cause confusion and slowdown user adoption. Not good for anybody. With this in mind, everybody did their best to act like adults and came together to form the OCI — a lightweight agile council to govern container standards.
 
+At the time of writing, the OCI has published two specifications (standards):
+- The image-spec
+- The runtime-spec
 
-## 3: Installing Docker
+An analogy that’s often used when referring to these two standards is rail tracks. these two standards are like agreeing on standard sizes and properties of rail tracks, leaving everyone else free to build better trains, better carriages, better signalling systems, better stations. All safe in the knowledge that they’ll work on the standardized tracks. Nobody wants two competing standards for rail track sizes! It’s fair to say that the two OCI speciﬁcations have had a major impact on the architecture and design of the core Docker product. As of Docker 1.11, the Docker Engine architecture conforms to the OCI runtime spec. The OCI is organized under the Linux Foundation.
 
-There are lots of ways and places to install Docker. There’s Windows, Mac, and Linux. You can install in the cloud, on premises, and on your laptop. And there are manual installs, scripted installs, wizard-based installs.
-
-
-• Docker Desktop installs on
-
-**–** Windows 10
-**–** Mac
-
-• Server installs on
-
-**–** Linux
-**–** Windows Server 2019
-
-
-**Docker Desktop**
-
-Docker Desktop is a packaged product from Docker, Inc. It runs on 64-bit versions of Windows 10 and Mac, and it’s easy to download and install. Once the installation is complete, you have a single-engine Docker environment that is great for development purposes. It includes Docker Compose and you can choose to enable a single-node Kubernetes cluster.
-
-Docker Desktop on Windows 10 can run native Windows containers as well as Linux containers. Docker Desktop on Mac can only run Linux containers.
-
-**Windows pre-reqs**
-
-Docker Desktop on Windows requires all of the following:
-
-• 64-bit version of Windows 10 Pro/Enterprise/Education (does not work with Home edition)
-• Hardware virtualization support must be enabled in your system’s BIOS
-• The *Hyper-V* and *Containers* features must be enabled in Windows
-The installer can enable the Hyper-V and Containers features, but it’s your responsibility to enable hardware virtualization in your BIOS (be very careful changing anything in your system’s BIOS).
-
-
-**Installing Docker Desktop on Windows 10**
-
-Perform a google search for “install Docker Desktop”. This will take you to the relevant download page where you can download the installer and follow the instructions. Once it’s up and running you can open a PowerShell prompt and type some simple docker commands.
-```sh
-$ docker version
-```
-Notice the output is showing OS/Arch: linux/amd64 for the **Server** component. This is because a default installation assumes you’ll be working with Linux containers. It does this by running the Docker daemon inside of a lightweight Linux Hyper-V VM.
-```sh
-C:\> docker version
-```
-You can now run and manage Windows containers (containers running Windows applications).
-
-**Installing Docker Desktop on Mac**
-
-Download the installer and follow the step-by-step instructions. Once the installation is complete you may have to manually start Docker Desktop from the MacOS Launchpad. Open a terminal window and run some regular Docker commands. Try the following.
-```sh
-$ docker version
-```
-Notice that the OS/Arch: for the **Server** component is showing as linux/amd64. This is because the daemon is running inside of the Linux VM we mentioned earlier. The **Client** component is a native Mac application and runs directly on the Mac OS Darwin kernel (OS/Arch: darwin/amd64).
-
-**Installing Docker on Linux**
-
-There are lots of ways to install Docker on Linux and most of them are easy. 
-
-1. Update the apt package index.
-```sh
-$ sudo apt-get update
-```
-2. Install Docker from the oﬃcial repo.
-```sh
-$ sudo apt-get install docker.io
-```
-Docker is now installed and you can test by running some commands.
-```sh
-$ sudo docker --version
-$ sudo docker info
-```
-
-
-**Installing Docker on Windows Server 2019**
-
-Most of the public cloud platforms offer off-the-shelf copies of Windows Server 2019 with Docker pre- installed. Simply choose one of these – such as Microsoft Windows Server 2019 Base with Containers - ami-0b809eef92577a4f1 on AWS – and you’re good to go.
-
-1. Install the Docker Provider
-```sh
-PS C:\> Install-Module DockerMsftProvider -Force
-```
-2. Install Docker
-```sh
-PS C:\> Install-Package Docker -ProviderName DockerMsftProvider -Force
-```
-Contains Docker EE for use with Windows Server.
-3. Restart your machine
-
-Congratulations, Docker is now installed and conﬁgured to automatically start when the system boots. Run some commands to verify Docker is working.
-```sh
-PS C:\> docker version
-```
-Docker is now installed and you are ready to start using Windows containers.
-
-**Play with Docker**
-
-Play with Docker (PWD) provides a free-to-use fully functional Docker playground that lasts for 4 hours. You 
-can add multiple nodes and even cluster them in a swarm. 
-Sometimes performance can be slow, but for a free-to-use service it is excellent!
-
-
-## 4: The big picture
+## The Big Picture
 
 The aim of this chapter is to paint a quick big-picture of what Docker is all about before we dive in deeper in later chapters. We’ll break this chapter into two:
 
@@ -227,51 +121,47 @@ In the Ops Perspective section, we’ll download an image, start a new container
 
 In the Dev Perspective section, we’ll focus more on the app. We’ll clone some app-code from GitHub, inspect a Dockerﬁle, containerize the app, run it as a container.
 
-If you want to follow along, all you need is a single Docker host with an internet connection. I recommend Docker Desktop for your Mac or Windows PC. However, the examples will work anywhere that you have Docker installed. We’ll be showing examples using Linux containers and Windows containers.
+If you want to follow along, all you need is a single Docker host with an internet connection. I recommend Docker Desktop for your Mac or Windows PC. However, the examples will work anywhere that you have Docker installed.
 
 If you can’t install software and don’t have access to a public cloud, another great way to get Docker is Play With Docker (PWD). This is a web-based Docker playground that you can use for free. Just point your web browser to https://labs.play-with-Docker.com/ and you’re ready to go (you’ll need a Docker Hub or GitHub account to be able to login).
 
 As we progress through the chapter, we may use the terms “Docker host” and “Docker node” interchangeably. Both refer to the system that you are running Docker on.
 
-
 ### The Ops Perspective
 
 When you install Docker, you get two major components:
 
-    • the Docker client
-
-    • the Docker daemon (sometimes called the “Docker engine”)
+- the Docker client
+- the Docker daemon (sometimes called the “Docker engine”)
 
 The daemon implements the runtime, API and everything else required to run Docker.
 
-In a default Linux installation, the client talks to the daemon via a local IPC/Unix socket at `/var/run/docker.sock`.
+In a default Linux installation, the client talks to the daemon via a local IPC/Unix socket at **`/var/run/docker.sock`**.
 
 On Windows this happens via a named pipe at `npipe:////./pipe/docker\_engine`. Once installed, you can use
 the `docker version` command to test that the client and daemon (server) are running and talking to each other.
 
-```sh
-docker version
+```shell
+$ docker version
 ```
-
 
 If you get a response back from the `Client` and `Server`, you’re good to go.
 
-If you are using Linux and get an error response from the Server component, make sure that Docker is up and running. Also, try the command again with sudo in front of it: sudo docker version. If it works with sudo you will need to add your user account to the local docker group, or preﬁx the remainder of the commands in the book with sudo.
+If you are using Linux and get an error response from the Server component, make sure that Docker is up and running. Also, try the command again with sudo in front of it: **sudo docker version**. If it works with sudo you will need to add your user account to the local docker group, or preﬁx the remainder of the commands in the book with sudo.
 
-
-**Images**
+#### Images
 
 It’s useful to think of a Docker image as an object that contains an OS ﬁlesystem, an application, and all application dependencies. If you work in operations, it’s like a virtual machine template. A virtual machine template is essentially a stopped virtual machine. **In the Docker world, an image is eﬀectively a stopped container**. If you’re a developer, you can think of an image as a *class*.
 
-Run the `docker image ls` command on your Docker host.
+Run the **`docker image ls`** command on your Docker host.
 
-```sh
+```shell
 $ docker image ls
 ``` 
 
-If you are working from a freshly installed Docker host, or Play With Docker, you will have no images and it will look like the previous output. Getting images onto your Docker host is called “pulling”. If you are following along with Linux, pull the `ubuntu:latest` image. If you are following along on Windows, pull the `mcr.microsoft.com/powershell:lts-nanoserver-1903` image.
+If you are working from a freshly installed Docker host, or Play With Docker, you will have no images and it will look like the previous output. Getting images onto your Docker host is called “pulling”. If you are following along with Linux, pull the `ubuntu:latest` image.
 
-```sh
+```shell
 $ docker image pull ubuntu:latest
 
 $ docker images
@@ -281,23 +171,21 @@ We’ll get into the details of where the image is stored and what’s inside of
 
 If you pull an application container such as nginx or mcr.microsoft.com/windows/servercore/iis, you will get an image that contains some OS, as well as the code to run either NGINX or IIS. It’s also worth noting that each image gets its own unique ID. When referencing images, you can refer to them using either IDs or names. If you’re working with image ID’s, it’s usually enough to type the ﬁrst few characters of the ID — as long as it’s unique, Docker will know which image you mean.
 
-
-
-**Containers**
+#### Containers
 
 Now that we have an image pulled locally, we can use the `docker container run` command to launch a container from it.
 
 For Linux:
 
-```sh
-> docker container run -it ubuntu:latest /bin/bash
+```shell
+$ docker container run -it ubuntu:latest /bin/bash
 root@6dc20d508db0:/#
 ```
 
 For Windows:
 
-```sh
-> docker container run -it mcr.microsoft.com/powershell:lts-nanoserver-1903 pwsh.exe 
+```powershell
+\> docker container run -it mcr.microsoft.com/powershell:lts-nanoserver-1903 pwsh.exe 
 
 PowerShell 7.0.0
 Copyright (C) Microsoft Corporation. All rights reserved.
@@ -314,32 +202,32 @@ Run a ps command from inside of the container to list all running processes.
 
 Linux example:
 
-```sh
+```shell
 root@6dc20d508db0:/# ps -elf
 ```
 
 Windows example:
 
-```sh
+```powershell
 PS C:\> ps
 ```
 
 The Linux container only has two processes:
 
-    • PID 1. This is the /bin/bash process that we told the container to run with the docker container run command.
-    • PID 9. This is the `ps -elf` command/process that we ran to list the running processes.
+- PID 1. This is the /bin/bash process that we told the container to run with the docker container run command.
+- PID 9. This is the `ps -elf` command/process that we ran to list the running processes.
 
 The presence of the `ps -elf` process in the Linux output can be a bit misleading as it is a short-lived process that dies as soon as the ps command completes. This means the only long-running process inside of the container is the `/bin/bash` process.
 
-The Windows container has a lot more going on. This is an artefact of the way the Windows Operating System works. However, even though the Windows container has a lot more processes than the Linux container, it is still a lot less than a regular Windows **Server**.
+The Windows container has a lot more going on. This is an artefact of the way the Windows Operating System works. However, even though the Windows container has a lot more processes than the Linux container, it is still a lot less than a regular **Windows Server**.
 
-Press `Ctrl-PQ` to exit the container without terminating it. This will land your shell back at the terminal of your Docker host. You can verify this by looking at your shell prompt. Now that you are back at the shell prompt of your Docker host, run the ps command again. Notice how many more processes are running on your Docker host compared to the container you just ran.
+Press **`Ctrl-PQ`** to exit the container without terminating it. This will land your shell back at the terminal of your Docker host. You can verify this by looking at your shell prompt. Now that you are back at the shell prompt of your Docker host, run the ps command again. Notice how many more processes are running on your Docker host compared to the container you just ran.
 
-Windows containers run far fewer processes than Windows hosts, and Linux containers run far less than Linux hosts.
+**Windows containers run far fewer processes than Windows hosts, and Linux containers run far less than Linux hosts.**
 
-In a previous step, you pressed `Ctrl-PQ` to exit from the container. Doing this from inside of a container will exit you from the container without killing it. You can see all running containers on your system using the docker container ls command.
+In a previous step, you pressed `Ctrl-PQ` to exit from the container. Doing this from inside of a container will exit you from the container without killing it. You can see all running containers on your system using the **docker container ls** command.
 
-```sh
+```shell
 $ docker container ls
 CONTAINER ID    IMAGE           COMMAND     CREATED     STATUS  NAMES
 6dc20d508db0    ubuntu:latest   "/bin/bash" 7 mins Up   7 min   vigilant_borg
@@ -347,7 +235,13 @@ CONTAINER ID    IMAGE           COMMAND     CREATED     STATUS  NAMES
 
 The output above shows a single running container. This is the container that you created earlier. The presence of the container in this output proves that it’s still running. You can also see that it was created 7 minutes ago and has been running for 7 minutes.
 
-**Attaching to running containers**
+You can also see running containers from host operating system with parameterized ps command for viewing process tree:
+
+```shell
+$ ps -fax
+```
+
+#### Attaching to running containers
 
 You can attach your shell to the terminal of a running container with the docker container exec command. As the container from the previous steps is still running, let’s make a new connection to it.
 
@@ -355,7 +249,7 @@ Linux example:
 
 This example references a container called “vigilant\_borg”. The name of your container will be diﬀerent, so remember to substitute “vigilant\_borg” with the name or ID of the container running on your Docker host.
 
-```sh
+```shell
 $ docker container exec -it vigilant\_borg bash
 
 root@6dc20d508db0:/#
@@ -365,7 +259,7 @@ Windows example:
 
 This example references a container called “pensive\_hamilton”. The name of your container will be diﬀerent, so remember to substitute “pensive\_hamilton” with the name or ID of the container running on your Docker host.
 
-```sh
+```powershell
 \> docker container exec -it pensive\_hamilton pwsh.exe
 
 PowerShell 7.0.0
@@ -373,37 +267,35 @@ Copyright (C) Microsoft Corporation. All rights reserved.
 PS C:\>
 ```
 
-Notice that your shell prompt has changed again. You are logged into the container again. The format of the `docker container exec` command is: `docker container exec <options> <container-name or container-id> <command/app>`. In our examples, we used the `-it` options to attach our shell to the container’s shell. We referenced the container by name, and told it to run the bash shell (PowerShell in the Windows example). We could easily have referenced the container by its hex ID. Exit the container again by pressing `Ctrl-PQ`.
+Notice that your shell prompt has changed again. You are logged into the container again. The format of the `docker container exec` command is: **`docker container exec <options> <container-name or container-id> <command/app>`**. In our examples, we used the `-it` options to attach our shell to the container’s shell. We referenced the container by name, and told it to run the bash shell (PowerShell in the Windows example). We could easily have referenced the container by its hex ID. Exit the container again by pressing `Ctrl-PQ`.
 
 Your shell prompt should be back to your Docker host.
 
 Run the `docker container ls` command again to verify that your container is still running.
 
-```sh
+```shell
 $ docker container ls
 ```
 
 Stop the container and kill it using the docker container stop and `docker container rm` commands. Remember to substitute the names/IDs of your own containers.
 
-```sh
+```shell
 $ docker container stop vigilant\_borg
 vigilant\_borg
 ```
 
-```sh
+```shell
 $ docker container rm vigilant\_borg
 vigilant\_borg
 ```
 
 Verify that the container was successfully deleted by running the `docker container ls` command with the `-a` ﬂag. Adding `-a` tells Docker to list all containers, even those in the stopped state.
 
-```sh
+```shell
 $ docker container ls -a
 ```
 
 You’ve just pulled a Docker image, started a container from it, attached to it, executed a command inside it, stopped it, and deleted it.
-
-
 
 ### The Dev Perspective
 
@@ -421,7 +313,7 @@ Run all of the following commands from a terminal on your Docker host.
 
 Clone the repo locally. This will pull the application code to your local Docker host ready for you to containerize it.
 
-```sh
+```shell
 $ git clone https://github.com/nigelpoulton/psweb.git
 ```
 
@@ -429,7 +321,7 @@ Both Git repos contain a file called Dockerfile. This is a plain-text document t
 
 List the contents of the Dockerfile.
 
-```sh
+```shell
 $ cat Dockerfile
 FROM alpine
 LABEL maintainer="nigelpoulton@hotmail.com"
@@ -441,12 +333,11 @@ EXPOSE 8080
 ENTRYPOINT ["node", "./app.js"]
 ```
 
-
 The contents of the Dockerﬁle in the Windows example are diﬀerent. However, this isn’t important at this stage. For now, it’s enough to understand that each line represents an instruction that Docker uses to build an image. At this point we have pulled some application code from a remote Git repo. We also have a Dockerﬁle containing instructions on how to build the app into a Docker image. Use the docker image build command to create a new image using the instructions in the Dockerﬁle. This example creates a new Docker image called `test:latest`.
 
 The command is the same for the Linux and Windows examples, and be sure to run it from within the directory containing the app code and Dockerﬁle.
 
-```sh
+```shell
 $ docker image build -t test:latest .
 ```
 
@@ -455,7 +346,7 @@ $ docker image build -t test:latest .
 
 Once the build is complete, check to make sure that the new test:latest image exists on your host.
 
-```sh
+```shell
 $ docker image ls
 ```
 
@@ -463,7 +354,7 @@ You have a newly-built Docker image with the app and dependencies inside. Run a 
 
 Linux example:
 
-```sh
+```shell
 $ docker container run -d \
 
 --name web1 \
@@ -473,7 +364,7 @@ $ docker container run -d \
 test:latest
 ```
 
-Open a web browser and navigate to the DNS name or IP address of the Docker host that you are running the container from, and point it to port 8080. You will see the following web page.
+Open a web browser and navigate to the DNS name or IP address of the Docker host that you are running the container from, and point it to port 8080.
 
 If you are following along with Docker for Windows or Docker for Mac, you will be able to use localhost:8080 or 127.0.0.1:8080. If you’re following along on Play With Docker, you will be able to click the 8080 hyperlink above the terminal screen.
 
@@ -481,7 +372,7 @@ If you are following along with Docker for Windows or Docker for Mac, you will b
 
 Windows example:
 
-```sh
+```powershell
 \> docker container run -d \
 
 --name web1 \
@@ -497,76 +388,79 @@ Open a web browser and navigate to the DNS name or IP address of the Docker host
 
 Well done. You’ve taken some application code from a remote Git repo and built it into a Docker image. You then ran a container from it. We call this “containerizing an app”.
 
+## The Docker Engine
 
+The **Docker engine** is the core software that runs and manages containers. We often refer to it simply as **Docker**. If you know a thing or two about VMware, it might be useful to think of it as being like ESXi. The Docker engine is modular in design and built from many small specialised tools. Where possible, these are based on open standards such as those maintained by the Open Container Initiative (OCI). 
 
-# Part 2: The technical stuﬀ
+In many ways, the Docker Engine is like a car engine — both are modular and created by connecting many small specialized parts:
 
-## 5: The Docker Engine
+- A car engine is made from many specialized parts that work together to make a car drive — intake manifolds, throttle body, cylinders, spark plugs, exhaust manifolds etc.
 
-The *Docker engine* is the core software that runs and manages containers. We often refer to it simply as *Docker*. If you know a thing or two about VMware, it might be useful to think of it as being like ESXi. The Docker engine is modular in design and built from many small specialised tools. Where possible, these are based on open standards such as those maintained by the Open Container Initiative (OCI). In many ways, the Docker Engine is like a car engine — both are modular and created by connecting many small specialized parts:
-• A car engine is made from many specialized parts that work together to make a car drive — intake manifolds, throttle body, cylinders, spark plugs, exhaust manifolds etc.
+- The Docker Engine is made from many specialized tools that work together to create and run containers — APIs, execution driver, runtimes, shims etc.
 
-• The Docker Engine is made from many specialized tools that work together to create and run containers
-— APIs, execution driver, runtimes, shims etc.
-
-At the time of writing, the major components that make up the Docker engine are; the *Docker daemon*, *containerd*, *runc*, and various plugins such as networking and storage. Together, these create and run containers.
+At the time of writing, the major components that make up the Docker engine are; the **Docker daemon**, **containerd**, **runc**, and various plugins such as networking and storage. Together, these create and run containers.
 
 <img src=".\images\DockerEngine.png" style="width:75%; height: 75%;">
 
 When Docker was ﬁrst released, the Docker engine had two major components:
 
-• The Docker daemon (hereafter referred to as just “the daemon”)
-• LXC
+- The Docker daemon (hereafter referred to as just “the daemon”)
+- LXC (Linux Native Container)
 
-The Docker daemon was a monolithic binary. It contained all of the code for the Docker client, the Docker API, the container runtime, image builds, and **much** more. LXC provided the daemon with access to the fundamental building-blocks of containers that existed in the Linux kernel. Things like *namespaces* and *control groups (cgroups)*.
+The Docker daemon was a monolithic binary. It contained all of the code for the Docker client, the Docker API, the container runtime, image builds, and much more. LXC provided the daemon with access to the fundamental building-blocks of containers that existed in the Linux kernel. Things like **namespaces** and **control groups (cgroups)**.
 
 <img src=".\images\DockerEngineLXC.png" style="width:75%; height: 75%;">
 
+### Getting rid of LXC
 
-**Getting rid of LXC**
-
-The reliance on LXC was an issue from the start. First up, LXC is Linux-speciﬁc.This was a problem for a project that had aspirations of being multi-platform. Second up, being reliant on an external tool for something so core to the project was a huge risk that could hinder development. As a result, Docker. Inc. developed their own tool called *libcontainer* as a replacement for LXC. The goal of *libcontainer* was to be a platform-agnostic tool that provided Docker with access to the fundamental container building-blocks that exist in the host kernel.
+The reliance on LXC was an issue from the start. First up, LXC is Linux-speciﬁc. This was a problem for a project that had aspirations of being multi-platform. Second up, being reliant on an external tool for something so core to the project was a huge risk that could hinder development. As a result, Docker. Inc. developed their own tool called **libcontainer** as a replacement for LXC. The goal of *libcontainer* was to be a platform-agnostic tool that provided Docker with access to the fundamental container building-blocks that exist in the host kernel.
 
 Libcontainer replaced LXC as the default *execution driver* in Docker 0.9.
 
-**Getting rid of the monolithic Docker daemon**
+### Getting rid of the monolithic Docker daemon
 
 Over time, the monolithic nature of the Docker daemon became more and more problematic:
-1. It’s hard to innovate on
-2. It got slower
-3. It wasn’t what the ecosystem wanted
+
+1. It’s hard to innovate on.
+2. It got slower.
+3. It wasn’t what the ecosystem wanted.
+
 Docker, Inc. was aware of these challanges and began a huge effort to break apart the monolithic daemon and modularize it. The aim of this work was to break out as much of the functionality as possible from the daemon, and re-implement it in smaller specialized tools. These specialized tools can be swapped out, as well as easily re-used by third parties to build other tools. This plan follows the tried-and-tested Unix philosophy of building small specialized tools that can be pieced together into larger tools. This work of breaking apart and re-factoring the Docker engine has seen **all of the container execution and container runtime code entirely removed from the daemon and refactored into small, specialized tools**.
 
 <img src=".\images\DockerEngineDaemon.png" style="width:75%; height: 75%;">
 
-
-**The inﬂuence of the Open Container Initiative (OCI)**
+### The inﬂuence of the Open Container Initiative (OCI)
 
 While Docker, Inc. was breaking the daemon apart and refactoring code, the OCI was in the process of deﬁning two container-related speciﬁcations (a.k.a standards):
+
 1. Image spec
 2. Container spec
 
 As of Docker 1.11 (early 2016), the Docker engine implements the OCI speciﬁcations as closely as possible. For example, the Docker daemon no longer contains any container runtime code — all container runtime code is implemented in a separate OCI-compliant layer. By default, Docker uses *runc* for this. runc is the *reference implementation* of the OCI container-runtime-spec.
-As well as this, the *containerd* component of the Docker Engine makes sure Docker images are presented to *runc* as valid OCI bundles.
 
+As well as this, the **containerd** component of the Docker Engine makes sure Docker images are presented to **runc** as valid OCI bundles.
 
+### runc
 
-**runc**
+As previously mentioned, **runc** is the reference implementation of the OCI container-runtime-spec. If you strip everything else away, runc is a small, lightweight CLI wrapper for libcontainer (remember that libcontainer originally replaced LXC as the interface layer with the host OS in the early Docker architecture). runc has a single purpose in life — create containers. And it’s damn good at it. And fast! But as it’s a CLI wrapper, it’s effectively a standalone container runtime tool. This means you can download and build the binary, and you’ll have everything you need to build and play with runc (OCI) containers. But it’s bare bones and very low-level, meaning you’ll have none of the richness that you get with the full-blown Docker engine.
 
-As previously mentioned, *runc* is the reference implementation of the OCI container-runtime-spec. If you strip everything else away, runc is a small, lightweight CLI wrapper for libcontainer (remember that libcontainer originally replaced LXC as the interface layer with the host OS in the early Docker architecture). runc has a single purpose in life — create containers. And it’s damn good at it. And fast! But as it’s a CLI wrapper, it’s effectively a standalone container runtime tool. This means you can download and build the binary, and you’ll have everything you need to build and play with runc (OCI) containers. But it’s bare bones and very low-level, meaning you’ll have none of the richness that you get with the full-blown Docker engine.
+### containerd
 
-**containerd**
+As part of the effort to strip functionality out of the Docker daemon, all of the container execution logic was ripped out and refactored into a new tool called containerd (pronounced container-dee). Its sole purpose in life was to manage container lifecycle operations — start | stop | pause | rm.
 
-As part of the effort to strip functionality out of the Docker daemon, all of the container execution logic was ripped out and refactored into a new tool called containerd (pronounced container-dee). Its sole purpose in life was to manage container lifecycle operations — start | stop | pause | rm....
 containerd is available as a daemon for Linux and Windows, and Docker has been using it on Linux since the 1.11 release. In the Docker engine stack, containerd sits between the daemon and runc at the OCI layer. As previously stated, containerd was originally intended to be small, lightweight, and designed for a single task in life — container lifecycle operations. However, over time it has branched out and taken on more functionality. Things like image pulls, volumes and networks.
 
-**Starting a new container (example)**
+### Starting a new container (example)
 
 Now that we have a view of the big picture, and some of the history, let’s walk through the process of creating a new container. The most common way of starting containers is using the Docker CLI. The following docker container run command will start a simple new container based on the alpine:latest image.
-```sh
+
+```shell
 $ docker container run --name ctr1 -it alpine:latest sh
 ```
-When you type commands like this into the Docker CLI, the Docker client converts them into the appropriate API payload and POSTs them to the API endpoint exposed by the Docker daemon. The API is implemented in the daemon and can be exposed over a local socket or the network. On Linux the socket is /var/run/docker.sock and on Windows it’s \pipe\docker\_engine. Once the daemon receives the command to create a new container, it makes a call to containerd. Remember that the daemon no-longer contains any code to create containers! Despite its name, *containerd* cannot actually create containers. It uses *runc* to do that. It converts the required Docker image into an OCI bundle and tells runc to use this to create a new container. runc interfaces with the OS kernel to pull together all of the constructs necessary to create a container (namespaces, cgroups etc.). The container process is started as a child-process of runc, and as soon as it is started runc will exit.
+
+When you type commands like this into the Docker CLI, the Docker client converts them into the appropriate API payload and POSTs them to the API endpoint exposed by the Docker daemon. The API is implemented in the daemon and can be exposed over a local socket or the network. 
+
+On Linux the socket is /var/run/docker.sock and on Windows it’s \pipe\docker\_engine. Once the daemon receives the command to create a new container, it makes a call to containerd. Remember that the daemon no-longer contains any code to create containers! Despite its name, *containerd* cannot actually create containers. It uses *runc* to do that. It converts the required Docker image into an OCI bundle and tells runc to use this to create a new container. runc interfaces with the OS kernel to pull together all of the constructs necessary to create a container (namespaces, cgroups etc). The container process is started as a child-process of runc, and as soon as it is started runc will exit.
 
 <img src=".\images\DockerEngineShim.png" style="width:75%; height: 75%;">
 
