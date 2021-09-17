@@ -9,6 +9,7 @@ Available at: https://github.com/kaan-keskin/introduction-to-docker
 **Resources:**
 
 > - Docker Deep Dive - Zero to Docker in a single book - Nigel Poulton @nigelpoulton
+> - California Institute of Technology - DevOps Lecture Notes
 > - Wikipedia - www.wikipedia.com
 
 **Content**
@@ -76,9 +77,25 @@ Kubernetes is an open-source project out of Google that has quickly emerged as t
 
 The important thing to know about Kubernetes, at this stage, is that it’s a higher-level platform than Docker, and it currently uses Docker for its low-level container-related operations. 
 
-### The Docker Technology
+### Docker
 
 Docker is software that runs on Linux and Windows. It creates, manages, and can even orchestrate containers. The software is currently built from various tools from the **Moby** open-source project. Docker, Inc. is the company that created the technology and continues to create technologies and solutions that make it easier to get the code on your laptop running in the cloud.
+
+<img src=".\images\feature-of-docker.png" style="width:75%; height: 75%;">
+
+- Docker is a platform for developers and sysadmins to develop, ship, and run applications by using containers.
+- Docker helps the user to quickly assemble applications from its components and eliminates the friction during code shipping.
+- Docker aids the user to test and deploy the code into production.
+
+#### Docker Functionalities
+
+<img src=".\images\docker-functionalities.png" style="width:75%; height: 75%;">
+
+#### Docker Properties
+
+<img src=".\images\docker-properties.png" style="width:75%; height: 75%;">
+
+### The Docker Technology
 
 When most people talk about Docker, they’re referring to the technology that runs containers. However, there are at least three things to be aware of when referring to Docker as a technology:
 
@@ -397,9 +414,37 @@ In many ways, the Docker Engine is like a car engine — both are modular and cr
 
 - The Docker Engine is made from many specialized tools that work together to create and run containers — APIs, execution driver, runtimes, shims etc.
 
+Docker Engine is a client-server application with these major components:
+
+- Server: It is a type of long-running program called a daemon process (the dockerd command).
+
+- REST API: It specifies the interfaces that programs can use to communicate with the daemon and instructs it on what to do next.
+
+- CLI: It is a command line interface client that is used to write the docker commands.
+
+Docker uses a client-server architecture. The docker client interacts with the Docker daemon that performs running, heavy lifting of building, and distribution of Docker containers.
+
+<img src=".\images\docker-architecture.png" style="width:75%; height: 75%;">
+
+> **Docker daemon:** It accepts the Docker API requests and manages Docker objects, such as images, containers, networks, and volumes. A daemon can also communicate with other daemons to manage Docker services.
+
+> **Docker client:** It is the primary path for Docker users to interact with the Docker application.
+
+> **Docker registries:** It stores Docker images. A Docker registry can be of classified into two categories:
+> - **Local Registry:** It helps the user to pull the image.
+> - **Docker Trusted Registry:** It is a feature the Docker Enterprise that helps the user to pull the image and scan the image.
+
+> **Docker objects:** When the user uses Docker, in order to package the application and store it in isolated bundles, user creates and uses objects, such as images, containers, services, networks, volumes, plugins.
+
 At the time of writing, the major components that make up the Docker engine are; the **Docker daemon**, **containerd**, **runc**, and various plugins such as networking and storage. Together, these create and run containers.
 
 <img src=".\images\DockerEngine.png" style="width:75%; height: 75%;">
+
+Docker Engine supports the tasks and workflows involved to build, ship, and run container-based applications. The engine creates a daemon process on the server side that hosts volumes of files, containers, networks, and storage.
+
+<img src=".\images\docker-engine.png" style="width:75%; height: 75%;">
+
+### First Release
 
 When Docker was ﬁrst released, the Docker engine had two major components:
 
@@ -515,7 +560,7 @@ In this chapter we’ll dive deep into Docker images. The aim of the game is to 
 
 ### Docker images
 
-A Docker image is a unit of packaging that contains everything required for an application to run. This includes; application code, application dependencies, and OS constructs. If you have an application’s Docker image, the only other thing you need to run that application is a computer running Docker.
+A Docker image is a unit of packaging that contains everything required for an application to run. An image holds instructions that are required to run an application. This includes; application code, application dependencies, and OS constructs. If you have an application’s Docker image, the only other thing you need to run that application is a computer running Docker.
 
 If you’re a former VM admin, you can think of Docker images as similar to VM templates. A VM template is like a stopped VM — a Docker image is like a stopped container. If you’re a developer you can think of them as similar to *classes*.
 
@@ -695,7 +740,14 @@ This is a perfect example of the warning issued earlier about the latest tag. In
 
 ### Filtering the output of docker image ls
 
-Docker provides the `--filter` ﬂag to ﬁlter the list of images returned by `docker image ls`.
+The format of filter flag is a key-value pair. Docker provides the `--filter` ﬂag to ﬁlter the list of images returned by `docker image ls`.
+
+Filter option is used in docker images to filter:
+
+- Images that are not tagged.
+- Images that are labelled.
+- Images by time.
+- Images by reference.
 
 The following example will only return dangling images.
 
@@ -724,6 +776,17 @@ $ docker image ls --filter=reference="\*:latest"
 ```
 
 You can also use the `--format` ﬂag to format output using Go templates. 
+
+Format option is used in docker image to filter:
+
+- Image ID
+- Image repository
+- Image tag
+- Image digest
+- Image disk size
+- Time at which the image was created
+- Time elapsed since the creation of the image
+
 For example, the following command will only return the size property of images on a Docker host.
 
 ```shell
@@ -756,6 +819,12 @@ $ docker search alpine
 
 Notice how some of the repositories returned are oﬃcial and some are unoﬃcial. You can use `--filter "is-official=true"` so that only oﬃcial repos are displayed.
 
+Filter option is used in docker search to filter:
+
+- Images according to the stars scored.
+- Images according to their automation status.
+- Images according to their official status.
+
 ```shell
 $ docker search alpine --filter "is-official=true"
 ```
@@ -768,11 +837,23 @@ $ docker search alpine --filter "is-automated=true"
 
 One last thing about docker search. By default, Docker will only display 25 lines of results. However, you can use the `--limit` ﬂag to increase that to a maximum of 100.
 
+Format option is used in docker search to filter. The format option --format helps in identifying:
+
+- Image name
+- Image description
+- Image stars
+- Official image
+- Automated image
+
 ### Images and layers
 
 A Docker image is just a bunch of loosely-connected read-only layers, with each layer comprising one or more ﬁles. This is shown in Figure below.
 
 **Figure 6.3**
+
+A Docker image is built from a series of layers. Each layer is an instruction in the Dockerfile of the image. Except the very last layer, each layer is read-only.
+
+<img src=".\images\docker-image-layers.png" style="width:75%; height: 75%;">
 
 Docker takes care of stacking these layers and representing them as a single uniﬁed object. There are a few ways to see and inspect the layers that make up an image. In fact, we saw one earlier when pulling images. The following example looks closer at an image pull operation.
 
@@ -801,6 +882,10 @@ docker.io/ubuntu:latest
 Each line in the output above that ends with “Pull complete” represents a layer in the image that was pulled. As we can see, this image has 5 layers. Figure below shows this in picture form with layer IDs.
 
 **Figure 6.4**
+
+**Identifying the Layers:** Layers of an image can be identified using the following commands:
+
+<img src=".\images\docker-image-layer-identify.png" style="width:75%; height: 75%;">
 
 Another way to see the layers of an image is to inspect the image with the `docker image inspect` command.
 
@@ -888,6 +973,17 @@ Notice the lines ending in Already exists.
 These lines tell us that Docker is smart enough to recognize when it’s being asked to pull an image layer that it already has a local copy of. In this example, Docker pulled the image tagged as latest ﬁrst. Then, when it pulled the v1 and v2 images, it noticed that it already had some of the layers that make up those images. This happens because the three images in this repository are almost identical, and therefore share many layers. In fact, the only diﬀerence between v1 and v2 is the top layer.
 
 As mentioned previously, Docker on Linux supports many storage drivers. Each is free to implement image layering, layer sharing, and copy-on-write (CoW) behaviour in its own way. However, the overall result and user experience is essentially the same. Although Windows only supports a single storage driver, that driver provides the same experience as Linux.
+
+### The Copy-on-Write (COW) Strategy
+
+Copy-on-write is a strategy of sharing and copying files for maximum efficiency. If there is a file or directory within the image in a lower layer and another layer (including the writable layer) needs read access to it, it just uses the existing file.
+
+When does a user use docker pull?
+
+- To pull down an image from a repository, or create a container from an image that does not exist locally.
+- To pull down each layer separately and store in Docker’s local storage area, which is usually /var/lib/docker/ on Linux hosts.
+
+If the user builds images from the two Docker files, the user can use docker image and docker history commands to verify that the cryptographic IDs of the shared layers are the same.
 
 ### Pulling images by digest
 
@@ -1170,6 +1266,10 @@ If we assume the same scenario of a single physical server needing to run 4 busi
 
 At a high level, hypervisors perform **hardware virtualization** — they carve up physical hardware resources into virtual versions called VMs. On the other hand, containers perform **OS virtualization** — they carve OS resources into virtual versions called containers.
 
+#### Virtual Machine vs. Docker
+
+<img src=".\images\VM-vs-Docker.png" style="width:75%; height: 75%;">
+
 ### Running containers
 
 The ﬁrst thing I always do when I log on to a Docker host is check that Docker is running.
@@ -1398,6 +1498,24 @@ $ docker image inspect nigelpoulton/pluralsight-docker-ci
 
 The output is snipped to make it easier to ﬁnd the information we’re interested in. The entries after Cmd show the command/app that the container will run unless you override it with a different one when you launch the container with docker container run. Sometimes the default app is listed as Entrypoint instead of Cmd. It’s common to build images with default commands like this, as it makes starting containers easier. It also forces a default behavior and is a form of self documentation — i.e. you can *inspect* the image and know what app it’s designed to run.
 
+### Container Size on Disk
+
+The user can use the **`docker ps -s`** command to view the approximate size of a running container. Two different columns which are related to the size of the container are:
+
+```shell
+$ docker ps -s
+```
+
+- **Size:** the amount of data (on disk) that is used for the writable layer of each container.
+- **Virtual size:** the amount of data used for the read-only image data used by the container plus the container’s writable layer size.
+
+The number of ways a container can take up disk space:
+
+- Used for log files if the user uses the json-file logging driver.
+- Used for volumes and bind mounts which are used by the container.
+- Used for the container’s configuration files, which are typically small.
+- Used for memory which are written to disk if swapping is enabled.
+
 ### Tidying up
 
 Let’s look at the simplest and quickest way to get rid of **every running container** on your Docker host. Be warned though, the procedure will forcibly destroy **all** containers without giving them a chance to clean up. **This should never be performed on production systems or systems running important containers.** Run the following command from the shell of your Docker host to delete **all** containers.
@@ -1407,4 +1525,3 @@ $ docker container rm $(docker container ls -aq) -f
 ```
 
  We already know the docker container rm command deletes containers. Passing it $(docker container ls -aq) as an argument, effectively passes it the ID of every container on the system. The -f ﬂag forces the operation so that even containers in the running state will be destroyed. Net result… all containers, running or stopped, will be destroyed and removed from the system.
-
