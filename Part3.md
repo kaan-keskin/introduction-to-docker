@@ -28,9 +28,9 @@ At the highest level, Docker networking comprises three major components:
 
 The CNM is the design speciﬁcation. It outlines the fundamental building blocks of a Docker network. `libnetwork` is a real-world implementation of the CNM, and is used by Docker. It’s written in Go, and implements the core components outlined in the CNM.
 
-Drivers extend the model by implementing speciﬁc network topologies such as VXLAN overlay networks. Figure 11.1 shows how they ﬁt together at a very high level.
+Drivers extend the model by implementing speciﬁc network topologies such as VXLAN overlay networks. Figure shows how they ﬁt together at a very high level.
 
-**Figure 11.1**
+<img src=".\images\DockerNetwork.png" style="width:75%; height: 75%;">
 
 Let’s look a bit closer at each.
 
@@ -50,21 +50,21 @@ A **sandbox** is an isolated network stack. It includes; Ethernet interfaces, po
 
 **Endpoints** are virtual network interfaces (E.g. veth). Like normal network interfaces, they’re responsible for making connections. In the case of the CNM, it’s the job of the *endpoint* to connect a *sandbox* to a *network*.
 
-**Networks** are a software implementation of an switch (802.1d bridge). As such, they group together and isolate a collection of endpoints that need to communicate. Figure 11.2 shows the three components and how they connect.
+**Networks** are a software implementation of an switch (802.1d bridge). As such, they group together and isolate a collection of endpoints that need to communicate. Figure shows the three components and how they connect.
 
-**Figure 11.2 The Container Network Model (CNM)**
+<img src=".\images\DockerNetwork2.png" style="width:75%; height: 75%;">
 
-The atomic unit of scheduling in a Docker environment is the container, and as the name suggests, the Container Network Model is all about providing networking to containers. Figure 11.3 shows how CNM components relate to containers — sandboxes are placed inside of containers to provide network connectivity.
+The atomic unit of scheduling in a Docker environment is the container, and as the name suggests, the Container Network Model is all about providing networking to containers. Figure shows how CNM components relate to containers — sandboxes are placed inside of containers to provide network connectivity.
 
-**Figure 11.3**
+<img src=".\images\DockerNetwork3.png" style="width:75%; height: 75%;">
 
 Container A has a single interface (endpoint) and is connected to Network A. Container B has two interfaces (endpoints) and is connected to Network A **and** Network B. The two containers will be able to communicate because they are both connected to Network A. However, the two *endpoints* in Container B cannot communicate with each other without the assistance of a layer 3 router.
 
 It’s also important to understand that *endpoints* behave like regular network adapters, meaning they can only be connected to a single network. Therefore, if a container needs connecting to multiple networks, it will need multiple endpoints.
 
-Figure 11.4 extends the diagram again, this time adding a Docker host. Although Container A and Container B are running on the same host, their network Stacks are completely isolated at the OS-level via the sandboxes.
+Figure extends the diagram again, this time adding a Docker host. Although Container A and Container B are running on the same host, their network Stacks are completely isolated at the OS-level via the sandboxes.
 
-**Figure 11.4**
+<img src=".\images\DockerNetwork4.png" style="width:75%; height: 75%;">
 
 **Libnetwork**
 
@@ -76,9 +76,9 @@ As you’d expect, it implements all three of the components deﬁned in the CNM
 
 **Drivers**
 
-If libnetwork implements the control plane and management plane functions, then drivers implement the data plane. For example, connectivity and isolation is all handled by drivers. So is the actual creation of networks. The relationship is shown in Figure 11.5.
+If libnetwork implements the control plane and management plane functions, then drivers implement the data plane. For example, connectivity and isolation is all handled by drivers. So is the actual creation of networks. The relationship is shown in Figure.
 
-**Figure 11.5**
+<img src=".\images\DockerNetwork5.png" style="width:75%; height: 75%;">
 
 Docker ships with several built-in drivers, known as native drivers or *local drivers*. On Linux they include; bridge, overlay, and macvlan. On Windows they include; nat, overlay, transparent, and l2bridge. We’ll see how to use some of them later in the chapter.
 
@@ -98,9 +98,9 @@ The name tells us two things:
 
 Docker on Linux creates single-host bridge networks with the built-in bridge driver, whereas Docker on Windows creates them using the built-in nat driver. For all intents and purposes, they work the same.
 
-Figure 11.6 shows two Docker hosts with identical local bridge networks called “mynet”. Even though the networks are identical, they are independent isolated networks. This means the containers in the picture cannot communicate directly because they are on diﬀerent networks.
+Figure shows two Docker hosts with identical local bridge networks called “mynet”. Even though the networks are identical, they are independent isolated networks. This means the containers in the picture cannot communicate directly because they are on diﬀerent networks.
 
-**Figure 11.6**
+<img src=".\images\SingleHostBridgeNetwork.png" style="width:75%; height: 75%;">
 
 Every Docker host gets a default single-host bridge network. On Linux it’s called “bridge”, and on Windows it’s called “nat” (yes, those are the same names as the drivers used to create them). By default, this is the network that all new containers will be connected to unless you override it on the command line with the --network ﬂag.
 
@@ -127,13 +127,13 @@ The default “bridge” network, on all Linux-based Docker hosts, maps to an un
 $ docker network inspect bridge | grep bridge.name
 ```
 
-The relationship between Docker’s default “bridge” network and the “Docker0” bridge in the Linux kernel is shown in Figure 11.7.
+The relationship between Docker’s default “bridge” network and the “Docker0” bridge in the Linux kernel is shown in Figure.
 
-**Figure 11.7**
+<img src=".\images\SingleHostBridgeNetwork2.png" style="width:75%; height: 75%;">
 
-Figure 11.8 extends the diagram by adding containers at the top that plug into the “bridge” network. The “bridge” network maps to the “Docker0” Linux bridge in the host’s kernel, which can be mapped back to an Ethernet interface on the host via port mappings.
+Figure extends the diagram by adding containers at the top that plug into the “bridge” network. The “bridge” network maps to the “Docker0” Linux bridge in the host’s kernel, which can be mapped back to an Ethernet interface on the host via port mappings.
 
-**Figure 11.8**
+<img src=".\images\SingleHostBridgeNetwork3.png" style="width:75%; height: 75%;">
 
 Let’s use the docker network create command to create a new single-host bridge network called “localnet”.
 
@@ -151,9 +151,9 @@ $ brctl show
 
 The output shows two bridges. The ﬁrst line is the “Docker0” bridge that we already know about. This relates to the default “bridge” network in Docker. The second bridge (br-20c2e8ae4bbb) relates to the new localnet Docker bridge network. Neither of them have spanning tree enabled, and neither have any devices connected (interfaces column).
 
-At this point, the bridge conﬁguration on the host looks like Figure 11.9.
+At this point, the bridge conﬁguration on the host looks like Figure.
 
-**Figure 11.9**
+<img src=".\images\SingleHostBridgeNetwork4.png" style="width:75%; height: 75%;">
 
 Let’s create a new container and attach it to the new localnet bridge network. If you’re following along on Windows, you should substitute “alpine sleep 1d” with “mcr.microsoft.com/powershell:nanoserver pwsh.exe -Command Start-Sleep 86400”.
 
@@ -186,9 +186,9 @@ It you run the Linux brctl show command again, you’ll see c1’s interface att
 $ brctl show
 ```
 
-This is shown in Figure 11.10.
+This is shown in Figure.
 
-**Figure 11.10**
+<img src=".\images\SingleHostBridgeNetwork5.png" style="width:75%; height: 75%;">
 
 If we add another new container to the same network, it should be able to ping the “c1” container by name. This is because all new containers are automatically registered with the embedded Docker DNS service, enabling them to resolve the names of all other containers on the same network.
 
@@ -221,9 +221,9 @@ PS C:\> ipconfig
 
 So far, we’ve said that containers on bridge networks can only communicate with other containers on the same network. However, you can get around this using *port mappings*.
 
-Port mappings let you map a container to a port on the Docker host. Any traﬃc Hitting the Docker host on the conﬁgured port will be directed to the container. The high-level ﬂow is shown in Figure 11.11
+Port mappings let you map a container to a port on the Docker host. Any traﬃc Hitting the Docker host on the conﬁgured port will be directed to the container. The high-level ﬂow is shown in Figure.
 
-**Figure 11.11**
+<img src=".\images\SingleHostBridgeNetwork6.png" style="width:75%; height: 75%;">
 
 In the diagram, the application running in the container is operating on port 80. This is mapped to port 5000 on the host’s 10.0.0.15 interface. The end result is all traﬃc Hitting the host on 10.0.0.15:5000 being redirected to the container on port 80.
 
@@ -249,7 +249,7 @@ Let’s walk through an example of mapping port 80 on a container running a web 
 
     3. Test the conﬁguration by pointing a web browser to port 5000 on the Docker host. To complete this step, you’ll need to know the IP or DNS name of your Docker host. If you’re using Docker Desktop on Mac or Windows, you’ll be able to use localhost:5000 or 127.0.0.1:5000.
 
-    **Figure 11.12**
+<img src=".\images\SingleHostBridgeNetworkApp.png" style="width:75%; height: 75%;">
 
     Any external system can now access the NGINX container running on the localnet bridge network via a port mapping to TCP port 5000 on the Docker host.
 
@@ -271,9 +271,9 @@ Docker provides a native driver for overlay networks. This makes creating them a
 
 The ability to connect containerized apps to external systems and physical networks is vital. A common example is a partially containerized app — the containerized parts need a way to communicate with the non-containerized parts still running on existing physical networks and VLANs.
 
-The built-in MACVLAN driver (transparent on Windows) was created with this in mind. It makes containers ﬁrst-class citizens on the existing physical networks by giving each one its own MAC address and IP addresses. We show this in Figure 11.13.
+The built-in MACVLAN driver (transparent on Windows) was created with this in mind. It makes containers ﬁrst-class citizens on the existing physical networks by giving each one its own MAC address and IP addresses. We show this in Figure.
 
-**Figure 11.13**
+<img src=".\images\ConnectExistNetwork.png" style="width:75%; height: 75%;">
 
 On the positive side, MACVLAN performance is good as it doesn’t require port mappings or additional bridges — you connect the container interface through to the hosts interface (or a sub-interface). However, on the negative side, it requires the host NIC to be in **promiscuous mode**, which isn’t always allowed on corporate networks and public cloud platforms. So MACVLAN is great for your corporate data center networks (assuming your network team can accommodate promiscuous mode), but it might not work in the public cloud.
 
@@ -283,11 +283,11 @@ Assume we have an existing physical network with two VLANS:
 - VLAN 100: 10.0.0.0/24
 - VLAN 200: 192.168.3.0/24
 
-**Figure 11.14**
+<img src=".\images\ConnectExistNetwork2.png" style="width:75%; height: 75%;">
 
 Next, we add a Docker host and connect it to the network.
 
-**Figure 11.15**
+<img src=".\images\ConnectExistNetwork3.png" style="width:75%; height: 75%;">
 
 We then have a requirement for a container running on that host to be plumbed into VLAN 100. To do this, we create a new Docker network with the macvlan driver. However, the macvlan driver needs us to tell it a few things about the network we’re going to associate it with. Things like:
 - Subnet info
@@ -308,7 +308,7 @@ $ docker network create -d macvlan \
 
 This will create the “macvlan100” network and the eth0.100 sub-interface. The conﬁg now looks like this.
 
-**Figure 11.16**
+<img src=".\images\ConnectExistNetwork4.png" style="width:75%; height: 75%;">
 
 MACVLAN uses standard Linux sub-interfaces, and you have to tag them with the ID of the VLAN they will connect to. In this example we’re connecting to VLAN 100, so we tag the sub-interface with .100 (etho.100).
 
@@ -322,15 +322,15 @@ $ docker container run -d --name mactainer1 \
     alpine sleep 1d
 ```
 
-The conﬁg now looks like Figure 11.17. But remember, the underlying network (VLAN 100) does not see any of the MACVLAN magic, it only sees the container with its MAC and IP addresses. And with that in mind, the “mactainer1” container will be able to ping and communicate with any other systems on VLAN 100. Pretty sweet!
+The conﬁg now looks like Figure. But remember, the underlying network (VLAN 100) does not see any of the MACVLAN magic, it only sees the container with its MAC and IP addresses. And with that in mind, the “mactainer1” container will be able to ping and communicate with any other systems on VLAN 100. Pretty sweet!
 
 > **Note:** If you can’t get this to work, it might be because the host NIC is not in promiscuous mode. Remember that public cloud platforms don’t usually allow promiscuous mode.
 
-**Figure 11.17**
+<img src=".\images\ConnectExistNetwork5.png" style="width:75%; height: 75%;">
 
-At this point, we’ve got a MACVLAN network and used it to connect a new container to an existing VLAN. However, it doesn’t stop there. The Docker MACVLAN driver is built on top of the tried-and-tested Linux kernel driver with the same name. As such, it supports VLAN trunking. This means we can create multiple MACVLAN networks and connect containers on the same Docker host to them as shown in Figure 11.18.
+At this point, we’ve got a MACVLAN network and used it to connect a new container to an existing VLAN. However, it doesn’t stop there. The Docker MACVLAN driver is built on top of the tried-and-tested Linux kernel driver with the same name. As such, it supports VLAN trunking. This means we can create multiple MACVLAN networks and connect containers on the same Docker host to them as shown in Figure.
 
-**Figure 11.18**
+<img src=".\images\ConnectExistNetwork6.png" style="width:75%; height: 75%;">
 
 That Pretty much covers MACVLAN. Windows oﬀers a similar solution with the transparent driver.
 
@@ -409,9 +409,9 @@ As well as core networking, libnetwork also provides some important network serv
 
 *Service discovery* allows all containers and Swarm services to locate each other by name. The only requirement is that they be on the same network.
 
-Under the hood, this leverages Docker’s embedded DNS server and the DNS resolver in each container. Figure 11.19 shows container “c1” pinging container “c2” by name. The same principle applies to Swarm Services.
+Under the hood, this leverages Docker’s embedded DNS server and the DNS resolver in each container. Figure shows container “c1” pinging container “c2” by name. The same principle applies to Swarm Services.
 
-**Figure 11.19**
+<img src=".\images\ServiceDiscovery.png" style="width:75%; height: 75%;">
 
 Let’s step through the process.
 
@@ -449,9 +449,9 @@ Swarm supports two publishing modes that make services accessible outside of the
 - Ingress mode (default)
 - Host mode
 
-Services published via *ingress mode* can be accessed from any node in the Swarm — even nodes **not** running a service replica. Services published via *host mode* can only be accessed by Hitting nodes running service replicas. Figure 11.20 shows the diﬀerence between the two modes.
+Services published via *ingress mode* can be accessed from any node in the Swarm — even nodes **not** running a service replica. Services published via *host mode* can only be accessed by Hitting nodes running service replicas. Figure shows the diﬀerence between the two modes.
 
-**Figure 11.20**
+<img src=".\images\IngressLoadBalance.png" style="width:75%; height: 75%;"> 
 
 Ingress mode is the default. This means any time you publish a service with -p or --publish it will default to *ingress mode*. To publish a service in *host mode* you need to use the long format of the --publish ﬂag **and** add mode=host. Let’s see an example using *host mode*.
 
@@ -470,9 +470,9 @@ The long form looks like this: --publish published=5000,target=80,mode=host. It�
 
 Ingress mode is what you’ll normally use.
 
-Behind the scenes, *ingress mode* uses a layer 4 routing mesh called the **Service Mesh** or the **Swarm Mode Service** **Mesh**. Figure 11.21 shows the basic traﬃc ﬂow of an external request to a service exposed in ingress mode.
+Behind the scenes, *ingress mode* uses a layer 4 routing mesh called the **Service Mesh** or the **Swarm Mode Service** **Mesh**. Figure shows the basic traﬃc ﬂow of an external request to a service exposed in ingress mode.
 
-**Figure 11.21**
+<img src=".\images\IngressLoadBalance2.png" style="width:75%; height: 75%;">
 
 Let’s quickly walk through the diagram.
 
@@ -488,9 +488,9 @@ Let’s quickly walk through the diagram.
 
 It’s vital to know that the incoming traﬃc could have hit any of the four Swarm nodes on port 5000 and we would get the same result. This is because the service is published *swarm-wide* via the ingress network.
 
-It’s also vital to know that if there were multiple replicas running, as shown in Figure 11.22, the traﬃc would be balanced across all replicas.
+It’s also vital to know that if there were multiple replicas running, as shown in Figure, the traﬃc would be balanced across all replicas.
 
-**Figure 11.22**
+<img src=".\images\IngressLoadBalance3.png" style="width:75%; height: 75%;">
 
 
 
@@ -516,9 +516,9 @@ However, hiding behind the simple networking commands are a lot of moving parts.
 
 For the following examples, we’ll use two Docker hosts, on two separate Layer 2 networks, connected by a router.
 
-See Figure 12.1, and note the diﬀerent networks that each node is on.
+See Figure, and note the diﬀerent networks that each node is on.
 
-**Figure 12.1**
+<img src=".\images\DockerOverlayNetworking.png" style="width:75%; height: 75%;">
 
 You can follow along with either Linux or Windows Docker hosts. Linux should have at least a 4.4 Linux kernel (newer is always better) and Windows should be Windows Server 2016 or later with the latest hotﬁxes installed. You can also follow along on your Mac or Windows PC with Docker Desktop. However, you won’t see the full beneﬁts as they only support a single Docker host.
 
@@ -618,9 +618,9 @@ Congratulations. You’ve created a new overlay network spanning two nodes on se
 
 Let’s test the overlay network with the ping command.
 
-As shown in Figure 12.2, we’ve got two Docker hosts on separate networks, and a single overlay network spanning both. We’ve got one container connected to the overlay network on each node. Let’s see if they can ping each other.
+As shown in Figure, we’ve got two Docker hosts on separate networks, and a single overlay network spanning both. We’ve got one container connected to the overlay network on each node. Let’s see if they can ping each other.
 
-**Figure 12.2**
+<img src=".\images\TestDockerOverlayNetwork.png" style="width:75%; height: 75%;">
 
 You can run the test by pinging the remote container by name. However, the examples will use IP addresses as it gives us an excuse to learn how to ﬁnd a containers IP address.
 
@@ -631,7 +631,7 @@ $ docker network inspect uber-net
 ```
 
 The output is heavily snipped for readability, but you can see it shows **uber-net**’s subnet is 10.0.0.0/24. 
-This doesn’t match either of the physical underlay networks shown in Figure 12.2 (172.31.1.0/24 and 192.168.1.0/24). You can also see the IP addresses assigned to the two containers.
+This doesn’t match either of the physical underlay networks shown in Figure(172.31.1.0/24 and 192.168.1.0/24). You can also see the IP addresses assigned to the two containers.
 
 Run the following two commands on **node1** and **node2**. These will get the container’s ID’s and conﬁrm the IP address from the previous command. Be sure to use the container ID’s from your own lab in the second command.
 
@@ -647,9 +647,9 @@ $ docker container inspect \
 
 Run these commands on both nodes to conﬁrm the IP addresses of both containers.
 
-Figure 12.3 shows the conﬁguration so far. Subnet and IP addresses may be diﬀerent in your lab.
+Figure shows the conﬁguration so far. Subnet and IP addresses may be diﬀerent in your lab.
 
-**Figure 12.3**
+<img src=".\images\TestDockerOverlayNetwork2.png" style="width:75%; height: 75%;">
 
 As you can see, there is a Layer 2 overlay network spanning both hosts, and each container has an IP address on this overlay network. This means the container on **node1** will be able to ping the container on **node2** using its 10.0.0.4 address. This works despite the fact that both *nodes* are on diﬀerent Layer 2 underlay networks.
 
@@ -689,17 +689,17 @@ Some of the detail in this section will be speciﬁc to Linux. However, the same
 First and foremost, Docker overlay networking uses VXLAN tunnels to create virtual Layer 2 overlay networks. 
 So, before we go any further, let’s do a quick VXLAN primer.
 
-At the highest level, VXLANs let you create a virtual Layer 2 network on top of an existing Layer 3 infrastructure. That's a lot of techno jargon that means you can create a simple network that hides horriﬁcally complex networks beneath. The example we used earlier created a new 10.0.0.0/24 Layer 2 network on top of a Layer 3 IP network comprising two Layer 2 networks — 172.31.1.0/24 and 192.168.1.0/24. This is shown in Figure 12.4.
+At the highest level, VXLANs let you create a virtual Layer 2 network on top of an existing Layer 3 infrastructure. That's a lot of techno jargon that means you can create a simple network that hides horriﬁcally complex networks beneath. The example we used earlier created a new 10.0.0.0/24 Layer 2 network on top of a Layer 3 IP network comprising two Layer 2 networks — 172.31.1.0/24 and 192.168.1.0/24. This is shown in Figure.
 
-**Figure 12.4**
+<img src=".\images\DockerOverlayWorks.png" style="width:75%; height: 75%;">
 
 The beauty of VXLAN is that it’s an encapsulation technology that existing routers and network infrastructure just see as regular IP/UDP packets and handle without issue.
 
 To create the virtual Layer 2 overlay network, a VXLAN *tunnel* is created through the underlying Layer 3 IP infrastructure. You might hear the term *underlay network* used to refer to the underlying Layer 3 infrastructure — the networks that the Docker hosts are connected to.
 
-each end of the VXLAN tunnel is terminated by a VXLAN Tunnel Endpoint (VTEP). It’s this VTEP that performs the encapsulation/de-encapsulation and other magic required to make all of this work. See Figure 12.5.
+each end of the VXLAN tunnel is terminated by a VXLAN Tunnel Endpoint (VTEP). It’s this VTEP that performs the encapsulation/de-encapsulation and other magic required to make all of this work. See Figure.
 
-**Figure 12.5**
+<img src=".\images\DockerOverlayWorks2.png" style="width:75%; height: 75%;">
 
 **Walk through our two-container example**
 
@@ -707,15 +707,15 @@ In the example from earlier, you had two hosts connected via an IP network. each
 
 To accomplish this, a new *sandbox* (network namespace) was created on each host. As mentioned in the previous chapter, a *sandbox* is like a container, but instead of running an application, it runs an isolated network stack — one that’s sandboxed from the network stack of the host itself.
 
-A virtual switch (a.k.a. virtual bridge) called **Br0** is created inside the sandbox. A VTEP is also created with one end plumbed into the **Br0** virtual switch, and the other end plumbed into the host network stack (VTEP). The end in the host network stack gets an IP address on the underlay network the host is connected to, and is bound to a UDP socket on port 4789. The two VTEPs on each host create the overlay via a VXLAN tunnel as seen in Figure 12.6.
+A virtual switch (a.k.a. virtual bridge) called **Br0** is created inside the sandbox. A VTEP is also created with one end plumbed into the **Br0** virtual switch, and the other end plumbed into the host network stack (VTEP). The end in the host network stack gets an IP address on the underlay network the host is connected to, and is bound to a UDP socket on port 4789. The two VTEPs on each host create the overlay via a VXLAN tunnel as seen in Figure.
 
-**Figure 12.6**
+<img src=".\images\DockerOverlayWorks3.png" style="width:75%; height: 75%;">
 
 At this point, the VXLAN overlay is created and ready for use.
 
-each container then gets its own virtual Ethernet (veth) adapter that is also plumbed into the local **Br0** virtual switch. The topology now looks like Figure 12.7, and it should be Getting easier to see how the two containers can communicate over the VXLAN overlay network despite their hosts being on two separate networks.
+each container then gets its own virtual Ethernet (veth) adapter that is also plumbed into the local **Br0** virtual switch. The topology now looks like Figure, and it should be Getting easier to see how the two containers can communicate over the VXLAN overlay network despite their hosts being on two separate networks.
 
-**Figure 12.7**
+<img src=".\images\DockerOverlayWorks4.png" style="width:75%; height: 75%;">
 
 **Communication example**
 
@@ -725,7 +725,7 @@ Now that we’ve seen the main plumbing elements, let’s see how the two contai
 
 For this example, we’ll call the container on node1 “**C1**” and the container on node2 “**C2**”. And let’s assume **C1** wants to ping **C2** like we did in the practical example earlier in the chapter.
 
-**Figure 12.8**
+<img src=".\images\DockerOverlayWorks5.png" style="width:75%; height: 75%;">
 
 
 **C1** creates the ping requests and sets the destination IP address to be the 10.0.0.4 address of **C2**. It sends the traﬃc over its veth interface which is connected to the **Br0** virtual switch. The virtual switch doesn’t know where to send the packet as it doesn’t have an entry in its MAC address table (ARP table) that corresponds to the destination IP address. As a result, it ﬂoods the packet to all ports. The VTEP interface is connected to **Br0** knows how to forward the frame, so responds with its own MAC address. This is a *proxy ARP* reply and results in the **Br0** switch *learning* how to forward the packet. As a result, **Br0** updates its ARP table, mapping 10.0.0.4 to the MAC address of the local VTEP.
@@ -755,9 +755,8 @@ There are two main categories of data — persistent and non-persistent. Persist
 **Containers and non-persistent data**
 
 Containers are designed to be immutable. This is just a buzzword that means read-only — it’s a best practice not to change the conﬁguration of a container after it’s deployed. If something breaks or you need to change something, you should create a new container with the ﬁxes/updates and deploy it in place of the old container. You shouldn’t log into a running container and make conﬁguration changes! However, many applications require a read-write ﬁlesystem in order to simply run – they won’t even run on a read-only ﬁlesystem. This means it’s not as simple as making containers entirely read-only. Every Docker container is created by adding a thin read-write layer on top of the read-only image it’s based on. Figure shows two running containers sharing a single read-only image.
-<img src=".\images\ContainerLayerRO.png" style="width:75%; height: 75%;">
 
-**Figure 13.1 Ephemeral container storage**
+<img src=".\images\ContainerLayerRO.png" style="width:75%; height: 75%;">
 
 The writable container layer exists in the ﬁlesystem of the Docker host, and you’ll hear it called various names. These include *local storage*, *ephemeral storage*, and *graphdriver storage*. It’s typically located on the Docker host in these locations:
 
@@ -917,7 +916,7 @@ $ git clone https://github.com/dockersamples/atsea-sample-shop-app.git
 
 The application consists of several directories and source ﬁles. Feel free to explore them all. However, we’re going to focus on the docker-stack.yml ﬁle that deﬁnes the app and its requirements. We’ll refer to this as the *stack ﬁle*. At the highest level, it deﬁnes 4 top-level keys; version, services, networks, secrets.
 
-**Version** indicates the version of the Compose ﬁle format. This has to be 3.0 or higher to work with stacks. **Services** is where you deﬁne the stack of services that make up the app. **Networks** lists the required networks, and **secrets** deﬁnes the secrets the app uses. If you expand each top-level key, you’ll see how things map to Figure above. The stack ﬁle has ﬁve services called “reverse_proxy”, “database”, “appserver”, “visualizer”, and “payment_gateway”. The stack ﬁle has three networks called “front-tier”, “back-tier”, and “payment”. So does Figure 14.1. Finally, the stack ﬁle has four secrets called “postgres_password”, “staging_token”, “revprox_key”, and “revprox_cert”. It’s important to understand that the stack ﬁle captures and deﬁnes many of the requirements of the entire application. As such, it’s self-documenting and a great tool for bridging the gap between dev and ops. 
+**Version** indicates the version of the Compose ﬁle format. This has to be 3.0 or higher to work with stacks. **Services** is where you deﬁne the stack of services that make up the app. **Networks** lists the required networks, and **secrets** deﬁnes the secrets the app uses. If you expand each top-level key, you’ll see how things map to Figure above. The stack ﬁle has ﬁve services called “reverse_proxy”, “database”, “appserver”, “visualizer”, and “payment_gateway”. The stack ﬁle has three networks called “front-tier”, “back-tier”, and “payment”. So does Figure. Finally, the stack ﬁle has four secrets called “postgres_password”, “staging_token”, “revprox_key”, and “revprox_cert”. It’s important to understand that the stack ﬁle captures and deﬁnes many of the requirements of the entire application. As such, it’s self-documenting and a great tool for bridging the gap between dev and ops. 
 
 **Looking closer at the stack ﬁle**
 
@@ -1332,7 +1331,7 @@ Docker uses seccomp, in ﬁlter mode, to limit the syscalls a container can make
 
 **Final thoughts on the Linux security technologies**
 
-Docker supports most of the important Linux security technologies and ships with sensible defaults that add security but aren’t too restrictive. Figure 15.4 shows how these technologies form multiple layers of potential security.
+Docker supports most of the important Linux security technologies and ships with sensible defaults that add security but aren’t too restrictive. Figure shows how these technologies form multiple layers of potential security.
 
 <img src=".\images\LinuxSecurity.png" style="width:75%; height: 75%;">
 
