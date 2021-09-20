@@ -384,7 +384,8 @@ Open a web browser and navigate to the DNS name or IP address of the Docker host
 
 If you are following along with Docker for Windows or Docker for Mac, you will be able to use localhost:8080 or 127.0.0.1:8080. If you’re following along on Play With Docker, you will be able to click the 8080 hyperlink above the terminal screen.
 
-**Figure 4.1**
+<img src=".\images\HelloDockerLearners.png" style="width:75%; height: 75%;">
+
 
 Windows example:
 
@@ -400,7 +401,7 @@ test:latest
 
 Open a web browser and navigate to the DNS name or IP address of the Docker host that you are running the container from, and point it to port 8080. You will see the following web page. The same rules apply if you’re following along with Docker Desktop or Play With Docker.
 
-**Figure 4.2**
+<img src=".\images\HelloDockerLearnersWindows.png" style="width:75%; height: 75%;">
 
 Well done. You’ve taken some application code from a remote Git repo and built it into a Docker image. You then ran a container from it. We call this “containerizing an app”.
 
@@ -570,7 +571,7 @@ Images are made up of multiple *layers* that are stacked on top of each other an
 
 We’ve mentioned a couple of times already that **images** are like stopped containers. In fact, you can stop a container and create a new image from it. With this in mind, images are considered *build-time* constructs, whereas containers are *run-time* constructs.
 
-**Figure 6.1**
+<img src=".\images\DockerImageContainer.png" style="width:75%; height: 75%;">
 
 ### Images and containers
 
@@ -632,7 +633,7 @@ $ docker info
 
 Image registries contain one or more *image repositories*. In turn, image repositories contain one or more images. That might be a bit confusing, so Figure below shows a picture of an image registry with 3 repositories, and each repository has one or more images.
 
-**Figure 6.2**
+<img src=".\images\DockerRegistry.png" style="width:75%; height: 75%;">
 
 ### Oﬃcial and unoﬃcial repositories
 
@@ -849,7 +850,8 @@ Format option is used in docker search to filter. The format option --format hel
 
 A Docker image is just a bunch of loosely-connected read-only layers, with each layer comprising one or more ﬁles. This is shown in Figure below.
 
-**Figure 6.3**
+<img src=".\images\ImageLayers.png" style="width:75%; height: 75%;">
+
 
 A Docker image is built from a series of layers. Each layer is an instruction in the Dockerfile of the image. Except the very last layer, each layer is read-only.
 
@@ -881,7 +883,7 @@ docker.io/ubuntu:latest
 
 Each line in the output above that ends with “Pull complete” represents a layer in the image that was pulled. As we can see, this image has 5 layers. Figure below shows this in picture form with layer IDs.
 
-**Figure 6.4**
+<img src=".\images\ImageLayersSha.png" style="width:75%; height: 75%;">
 
 **Identifying the Layers:** Layers of an image can be identified using the following commands:
 
@@ -903,11 +905,11 @@ The trimmed output shows 5 layers again. Only this time they’re shown using th
 
 Consider the following oversimpliﬁed example of building a simple Python application. You might have a corporate policy that all applications are based on the oﬃcial `Ubuntu 20:04` image. This would be your image’s *base layer*. If you then add the Python package, this will be added as a second layer on top of the base layer. If you later add source code ﬁles, these will be added as additional layers. Your ﬁnal image would have three layers as shown in Figure below (remember this is an over-simpliﬁed example for demonstration purposes).
 
-**Figure 6.5**
+<img src=".\images\ImageLayersBase.png" style="width:75%; height: 75%;">
 
 It’s important to understand that as additional layers are added, the *image* is always the combination of all layers stacked in the order they were added. Take a simple example of two layers as shown in Figure below. Each *layer* has 3 ﬁles, but the overall *image* has 6 ﬁles as it is the combination of both layers.
 
-**Figure 6.6**
+<img src=".\images\ImageLayersInside.png" style="width:75%; height: 75%;">
 
 > **Note:** We’ve shown the image layers in Figure above in a slightly diﬀerent way to previous ﬁgures.
 
@@ -915,17 +917,17 @@ This is just to make showing the ﬁles easier.
 
 In the slightly more complex example of the three-layer image in Figure below, the overall image only presents 6 ﬁles in the uniﬁed view. This is because File 7 in the top layer is an updated version of File 5 directly below (inline). In this situation, the ﬁle in the higher layer obscures the ﬁle directly below it. This allows updated versions of ﬁles to be added as new layers to the image.
 
-**Figure 6.7**
+<img src=".\images\ImageLayersInside2.png" style="width:75%; height: 75%;">
 
 **Docker employs a storage driver that is responsible for stacking layers and presenting them as a single uniﬁed ﬁlesystem/image.** Examples of storage drivers on Linux include AUFS, overlay2, devicemapper, btrfs and zfs.
 
 As their names suggest, each one is based on a Linux ﬁlesystem or block-device technology, and each has its own unique performance characteristics. The only driver supported by Docker on Windows is windowsfilter, which implements layering and CoW on top of NTFS.
 
-No matter which storage driver is used, the user experience is the same.
+No matter which storage driver is used, the user experience is the same.     
 
 Figure below shows the same 3-layer image as it will appear to the system. i.e. all three layers stacked and merged, giving a single uniﬁed view.
 
-**Figure 6.8**
+<img src=".\images\ImageLayersInside3.png" style="width:75%; height: 75%;">
 
 ### Sharing image layers
 
@@ -1042,7 +1044,7 @@ To make this happen, the Registry API supports two important constructs:
 
 The **manifest list** is exactly what it sounds like: a list of architectures supported by a particular image tag. each supported architecture then has its own *\*manifest* detailing the layers that make it up. Figure below uses the oﬃcial golang image as an example. On the left is the **manifest list** with entries for each architecture the image supports. The arrows show that each entry in the **manifest list** points to a **manifest** containing image conﬁg and layer data.
 
-**Figure 6.9**
+<img src=".\images\MultiArchImage.png" style="width:75%; height: 75%;">
 
 Let’s look at the theory before seeing it in action.
 
