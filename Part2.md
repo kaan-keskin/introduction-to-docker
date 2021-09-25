@@ -620,9 +620,9 @@ It’s also worth knowing that Compose builds networks and volumes **before** de
 $ docker-compose up -d
 ```
 
-If we take another look at the service deﬁnition for web-fe, we’ll see that it’s mounting the counter-app volume into the service’s container at /code. We can also see from the Dockerﬁle that /code is where the app is installed and executed from. Net result, the app code resides on a Docker volume. See Figure 9.2.
+If we take another look at the service deﬁnition for web-fe, we’ll see that it’s mounting the counter-app volume into the service’s container at /code. We can also see from the Dockerﬁle that /code is where the app is installed and executed from. Net result, the app code resides on a Docker volume. See Figure.
 
-**Figure 9.2**
+<img src=".\images\DockerFileComposeFile.png" style="width:75%; height: 75%;">
 
 This all means we can make changes to ﬁles in the volume, from the outside of the container, and have them reﬂected immediately in the app. Let’s see how that works. The next few steps will walk you through the following process. We’ll update the contents of app.py in the project’s working directory on the Docker host. We’ll copy the updated app.py to the volume on the Docker host. We’ll refresh the app’s web page to see the updated text. This will work because whatever you write to the volume on the Docker host will immediately appear in the volume mounted in the container. 
 
@@ -650,7 +650,7 @@ $ cp ~/counter-app/app.py \
 /var/lib/docker/volumes/counter-app\_counter-vol/\_data/app.py
 ```
 
-The updated app ﬁle is now on the container. Connect to the app to see your change. You can do this by pointing your web browser to the IP of your Docker host on port 5000. Figure 9.3 shows the updated app.
+The updated app ﬁle is now on the container. Connect to the app to see your change. You can do this by pointing your web browser to the IP of your Docker host on port 5000. Figure shows the updated app.
 
 Obviously you wouldn’t do an update operation like this in production, but it’s a real time-saver in development. Congratulations. You’ve deployed and managed a simple multi-container app using Docker Compose. Before reminding ourselves of the major docker-compose commands, it’s important to understand that this was a very simple example. Docker Compose is capable of deploying and managing far more complex applications.
 
@@ -691,17 +691,17 @@ Automatic key rotation is also thrown in as the icing on the cake. And the best 
 
 On the application orchestration front, the atomic unit of scheduling on a swarm is the *service*. This is a new object in the API, introduced along with swarm, and is a higher level construct that wraps some advanced features around containers. These include scaling, rolling updates, and simple rollbacks. It’s useful to think of a *service* as an enhanced container.
 
-A high-level view of a swarm is shown in Figure 10.1.
+A high-level view of a swarm is shown in Figure.
 
-**Figure 10.1 High-level swarm**
+<img src=".\images\Swarm.png" style="width:75%; height: 75%;">
 
 That's enough of a primer. Let’s get our hands dirty with some examples.
 
 ### Build a secure Swarm cluster
 
-In this section, we’ll build a secure swarm cluster with three *manager nodes* and three *worker nodes*. You can use a diﬀerent lab with diﬀerent numbers of *managers* and *workers*, and with diﬀerent names and IPs, but the examples that follow will use the values in Figure 10.2.
+In this section, we’ll build a secure swarm cluster with three *manager nodes* and three *worker nodes*. You can use a diﬀerent lab with diﬀerent numbers of *managers* and *workers*, and with diﬀerent names and IPs, but the examples that follow will use the values in Figure.
 
-**Figure 10.2**
+<img src=".\images\SwarmMngWrk.png" style="width:75%; height: 75%;">
 
 The nodes can be virtual machines, physical servers, cloud instances, or Raspberry Pi systems. The only requirements are that they have Docker installed and can communicate over a reliable network. It’s also beneﬁcial if name resolution is conﬁgured — it makes it easier to identify nodes in command outputs and helps when troubleshooting.
 
@@ -723,7 +723,7 @@ Additional nodes can then be joined to the swarm as workers and managers. Joinin
 
 The following steps will put **mgr1** into *swarm mode* and initialize a new swarm. It will then join **wrk1**, **wrk2**, and **wrk3** as worker nodes — automatically puing them into *swarm mode* as part of the process. Finally, it will add **mgr2** and **mgr3** as additional managers and switch them into *swarm mode*. At the end of the procedure all 6 nodes will be in *swarm mode* and operating as part of the same swarm.
 
-This example will use the IP addresses and DNS names of the nodes shown in Figure 10.2. Yours may be diﬀerent.
+This example will use the IP addresses and DNS names of the nodes shown in Figure. Yours may be diﬀerent.
 
 
 1. Log on to **mgr1** and initialize a new swarm (don’t forget to use backticks instead of backslashes if you’re following along with Windows in a PowerShell terminal).
@@ -827,11 +827,11 @@ Swarm *managers* have native support for high availability (HA). This means one 
 
 Technically speaking, swarm implements a form of active-passive multi-manager HA. This means that although you have multiple *managers*, only one of them is *active* at any given moment. This active manager is called the “*leader*”, and the leader is the only one that will ever issue live commands against the *swarm*. So, it’s only ever the leader that changes the conﬁg, or issues tasks to workers. If a follower manager (passive) receives commands for the swarm, it proxies them across to the leader.
 
-This process is shown in Figure 10.3. Step 1 is the command coming in to a *manager* from a remote Docker client. Step 2 is the non-leader manager receiving the command and proxying it to the leader. Step 3 is the leader executing the command on the swarm.
+This process is shown in Figure. Step 1 is the command coming in to a *manager* from a remote Docker client. Step 2 is the non-leader manager receiving the command and proxying it to the leader. Step 3 is the leader executing the command on the swarm.
 
-**Figure 10.3**
+<img src=".\images\SwarmHA.png" style="width:75%; height: 75%;">
 
-If you look closely at Figure 10.3, you’ll notice that managers are either *leaders* or *followers*. This is Raft terminology, because swarm uses an implementation of the Raft consensus algorithm to maintain a consistent cluster state across multiple highly available managers.
+If you look closely at Figure, you’ll notice that managers are either *leaders* or *followers*. This is Raft terminology, because swarm uses an implementation of the Raft consensus algorithm to maintain a consistent cluster state across multiple highly available managers.
 
 On the topic of HA, the following two best practices apply:
     1. Deploy an odd number of managers.
@@ -839,9 +839,9 @@ On the topic of HA, the following two best practices apply:
 
 Having an odd number of *managers* reduces the chances of split-brain conditions. For example, if you had 4 managers and the network partitioned, you could be left with two managers on each side of the partition. This is known as a split brain — each side knows there used to be 4 but can now only see 2. But crucially, neither side has any way of knowing if the other two are still alive and whether it holds a majority (quorum). A swarm cluster continues to operate during split-brain conditions, but you are no longer able to alter the conﬁguration or add and manage application workloads.
 
-However, if you have 3 or 5 managers and the same network partition occurs, it is impossible to have an equal number of managers on both sides of the partition. This means that one side achieves quorum and full cluster management services remain available. The example on the right side of Figure 10.4 shows a partitioned cluster where the left side of the split knows it has a majority of managers.
+However, if you have 3 or 5 managers and the same network partition occurs, it is impossible to have an equal number of managers on both sides of the partition. This means that one side achieves quorum and full cluster management services remain available. The example on the right side of Figure  shows a partitioned cluster where the left side of the split knows it has a majority of managers.
 
-**Figure 10.4**
+<img src=".\images\SwarmHA2.png" style="width:75%; height: 75%;">
 
 As with all consensus algorithms, more participants means more time required to achieve consensus. It’s like deciding where to eat — it’s always quicker and easier for 3 people to make a quick decision than it is for 33! With this in mind, it’s a best practice to have either 3 or 5 managers for HA. 7 might work, but it’s generally accepted that 3 or 5 is optimal. You deﬁnitely don’t want more than 7, as the time taken to achieve consensus will be longer.
 
@@ -1046,9 +1046,9 @@ $ docker network create -d overlay uber-net
 
 This creates a new overlay network called “uber-net” that we’ll use for the service we’re about to create. An overlay network creates a new layer 2 network that we can place containers on, and all containers on it will be able to communicate. This works even if all of the swarm nodes are on diﬀerent underlying networks. Basically, the overlay network creates a new layer 2 container network on top of potentially multiple diﬀerent underlying networks.
 
-Figure 10.5 shows four swarm nodes on two underlay networks connected by a layer 3 router. The overlay network spans all 4 swarm nodes creating a single ﬂat layer 2 network for containers to use.
+Figure shows four swarm nodes on two underlay networks connected by a layer 3 router. The overlay network spans all 4 swarm nodes creating a single ﬂat layer 2 network for containers to use.
 
-**Figure 10.5**
+<img src=".\images\SwarmOverlay.png" style="width:75%; height: 75%;">
 
 Run a docker network ls to verify that the network created properly and is visible on the Docker host.
 
@@ -1091,7 +1091,7 @@ $ docker service create --name uber-svc \
 
 Open a web browser and point it to the IP address of any of the nodes in the swarm on port 80 to see the service running.
 
-**Figure 10.6**
+<img src=".\images\SwarmApp.png" style="width:75%; height: 75%;">
 
 As you can see, it’s a simple voting application that will register votes for either “football” or “soccer”. Feel free to point your web browser to other nodes in the swarm. You’ll be able to reach the web service from any node because the -p 80:80 ﬂag creates an *ingress mode* mapping on every swarm node. This is true even on nodes that are not running a replica for the service — **every node gets a mapping and can therefore redirect your request to a node that is running the service**.
 
