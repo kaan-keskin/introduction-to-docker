@@ -1,7 +1,25 @@
+# Introduction to Docker - Part 2
 
-## 8: Containerizing an app
+Editors: **Taha Osman Sarıaslan, Semih Teker, Kaan Keskin**
 
-Docker is all about taking applications and running them in containers. The process of taking an application and conﬁguring it to run as a container is called “containerizing”. In this chapter, we’ll walk through the process of containerizing a simple Linux-based web application.
+Date: October 2021
+
+Available at: https://github.com/kaan-keskin/introduction-to-docker
+
+**Resources:**
+
+> - Docker Deep Dive - Zero to Docker in a single book - Nigel Poulton @nigelpoulton
+> - California Institute of Technology - DevOps Lecture Notes
+> - Wikipedia - www.wikipedia.com
+
+**Content**
+
+> - Containerizing an app
+> - Containerizing an app
+
+## Containerizing an app
+
+Docker is all about taking applications and running them in containers. The process of taking an application and conﬁguring it to run as a container is called “containerizing”.
 
 Containers are all about making apps simple to **build**, **ship**, and **run**. The process of containerizing an app looks like this:
 
@@ -19,28 +37,20 @@ Once your app is containerized (made into a container image), you’re ready to 
 
 <img src=".\images\Containerizing.png" style="width:75%; height: 75%;">
 
-
 **Containerize a single-container app**
 
 The rest of this chapter walks through the process of containerizing a simple Node.js web app. We’ll complete the following high-level steps:
 
-• Clone the repo to get the app code
+- Clone the repo to get the app code
+- Inspect the Dockerﬁle
+- Containerize the app
+- Run the app
+- Test the app
+- Look a bit closer
+- Move to production with **Multi-stage Builds**
+- A few best practices 
 
-• Inspect the Dockerﬁle
-
-• Containerize the app
-
-• Run the app
-
-• Test the app
-
-• Look a bit closer
-
-• Move to production with **Multi-stage Builds**
-
-• A few best practices 
 The example in this chapter is of a single-container app. The next chapter will include a slightly more complex multi-container app, and we’ll move on to an even more complicated app in the chapter on Docker Stacks.
-
 
 **Getting the application code**
 
