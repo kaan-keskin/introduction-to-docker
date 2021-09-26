@@ -9,8 +9,14 @@ Available at: https://github.com/kaan-keskin/introduction-to-docker
 **Resources:**
 
 > - Docker Deep Dive - Zero to Docker in a single book - Nigel Poulton @nigelpoulton
-> - California Institute of Technology - DevOps Lecture Notes
+> - Containers Fundamentals (LFS253) - Linux Foundation
+> - DevOps Lecture Notes - California Institute of Technology
 > - Wikipedia - www.wikipedia.com
+
+**LEGAL NOTICE: This document is created for educational purposes, and it can not be used for any commercial purposes. If you find this document useful in any means please support original authors for ethical reasons.** 
+
+**Please visit this page and buy kindle/digital version of the book:**
+**https://www.amazon.com/Docker-Deep-Dive-Nigel-Poulton-ebook/dp/B01LXWQUFF/**
 
 **Content**
 
@@ -50,6 +56,40 @@ Despite all of this, containers remained complex and outside of the reach of mos
 
 Docker was the magic that made Linux containers usable for mere mortals. Put another way, Docker, Inc. made containers simple!
 
+#### Control Groups (cgroups)
+
+Control groups, known as cgroups, are a feature of the Linux kernel allowing the limitation, accounting, and isolation of resources used by groups of processes and their subgroups.
+
+Cgroups are a fundamental feature of various Operating System level virtualization mechanisms, such as OpenVZ and LXC.
+
+<img src=".\images\linux-cgroups.png" style="zoom:33%;"/>
+
+Although cgroups may control single processes, they are used in the Operating System level virtualization predominantly to manage multiple processes together (hence the 'groups' in cgroups). 
+
+**Cgroups allow the limitation of memory, disk I/O, and network usage for a group of processes.** In addition, cgroups may set usage quotas, and prioritize a process group to receive more CPU time or memory than other groups. Also, a group's resource usage can be measured for accounting and billing purposes, and its state can be controlled by freezing and restarting the group.
+
+Recent implementations of the Linux kernel allow entire cgroups to be terminated as a whole unit, where all processes in a group together with its subgroups of children processes are terminated at once, thus easing the management of processes that are part of a particular workload. Also, in such cases of hierarchical groups, composed of a parent group and its children subgroups, the children subgroups inherit limits from their parent group.
+
+Containers benefit from cgroups primarily because they allow system resources to be limited for processes grouped by a container. In addition, the processes of a container are treated and managed as a whole unit, and a container may be prioritized for preferential resource allocation.
+
+#### Namespaces
+
+Namespaces are a feature of the Linux kernel allowing groups of processes to have limited visibility of the host system resources. 
+
+**Namespaces may limit the visibility of cgroups, hostname, process IDs, IPC mechanisms, network interfaces and routes, users, and mounted file systems.** To an isolated process running inside a namespace, a namespaced resource, such as the network, will appear as the process' own dedicated resource. Processes running inside a namespace are aware of any changes in the local namespaced system resources, however, such changes will not be visible to other processes or other namespaces.
+
+In the context of containers, namespaces isolate processes from one container to prevent them from modifying the hostname, network interfaces, or mounts for processes running in other containers. The processes isolated inside a container can only see system resources namespaced for that particular container. Namespaces also help resolve PID conflicts, by allowing multiple processes running with the same PID to coexist on a host system, in separate namespaces, while at the global level of the host system they are each assigned different PIDs. As a result, multiple root processes are allowed to run on the same host system, isolated in separate namespaces, a situation that otherwise would not be possible since root is unique on a host system.
+
+#### Unification File System (UnionFS)
+
+**UnionFS is a feature found in the Linux, FreeBSD and NetBSD kernels, allowing the overlay of separate transparent file systems to produce an apparent single unified file system.**
+
+When the content of several file systems, called branches, are virtually stacked, their contents appear to be merged, however, physically, they remain separate. The real physical separation, together with read-only and read-write access modes, help to prevent data corruption with the implementation of a **Copy-on-Write (CoW)** mechanism. This mechanism creates a physical copy of an existing file when it is being accessed to be changed. A copy of the file is made onto a real writable file system, part of the unionfs, and that copy is in fact being modified. However, virtually, through the unified file system, it appears as if the original file has been modified instead.
+
+<img src=".\images\unionfs.png"/>
+
+In a container, unionfs allows for changes to be made to the container image at runtime. The container image and other writable file systems are all stacked into a unionfs when the container is created and is running. The unified file system gives the impression that the actual container image is being modified. In reality, however, these changes are saved onto a real writable file system, part of the unionfs, while leaving the base container image file intact. In some environments, there is a possibility to export the new stacked files of the container into a new container image allowing users to create new and improved container images out of existing ones. All this while keeping image file sizes to a minimum as the new image file only stores the new changes with a link to the base image file.
+
 **Windows containers**
 
 Over the past few years, Microsoft Corp. has worked extremely hard to bring Docker and container technologies to the Windows platform. At the time of writing, Windows containers are available on the Windows desktop and Windows Server platforms (certain versions of Windows 10 and later, and Windows Server 2016 and later). In achieving this, Microsoft has worked closely with Docker, Inc. and the open-source community.
@@ -75,13 +115,52 @@ Kubernetes is an open-source project out of Google that has quickly emerged as t
     Note: 
     A containerized app is an application running as a container. At the time of writing, Kubernetes uses Docker as its default container runtime — the low-level technology that pulls images and starts and stops containers. However, Kubernetes has a pluggable container runtime interface (CRI) that makes it easy to swap-out Docker for a diﬀerent container runtime. In the future, Docker might be replaced by containerd as the default container runtime in Kubernetes. For now it’s enough to know that containerd is the small specialized part of Docker that does the low-level tasks of starting and stopping containers.
 
-The important thing to know about Kubernetes, at this stage, is that it’s a higher-level platform than Docker, and it currently uses Docker for its low-level container-related operations. 
+The important thing to know about Kubernetes, at this stage, is that it’s a higher-level platform than Docker, and it currently uses Docker for its low-level container-related operations.
+
+### Full Virtualization vs. Operating System-Level Virtualization
+
+**Although Containers are not considered to be Virtual Machines (VMs), not even light-weight VMs, their similarities cannot be overlooked.** 
+
+Both VMs and Containers are products of virtualization methods and provide resources isolation for running applications, but the main differences surround the underlying technologies and management methods.
+
+<img src=".\images\full-virtualization-vs-os-level-virtualizaiton.png"/>
+
+#### Virtual Machines vs. Containers
+
+**A Virtual Machine is created on top of a hypervisor software, which may be installed over a host operating system (OS) or directly on a bare-metal system without a host OS.** 
+
+**The hypervisor emulates hardware such as CPU, memory, storage disk, and networking from the available physical resources of the host system.** Then, a guest operating system such as Linux or Windows is installed on top of the emulated hardware. 
+
+A typical application runs inside such a VM, and it requires extensive overhead to reach the physical hardware or the outside world considering that it has to go through so many layers of abstraction - the guest OS, then the hypervisor, and finally the host OS. 
+
+A hypervisor may support multiple VMs running in parallel, each with its different guest OS, to the extent of the physical resources available on the host system to support all the running guests’ resources needs, together with the needs of the host operating system and of the hypervisor.
+
+**By contrast, a container is a light-weight environment that virtualizes and isolates resources for a running application - typically a microservice.** 
+
+A container image, which is the source or template of the container, allows an application to be boxed and shipped with all its dependencies. Once deployed, a container runs directly on the host operating system, without the need of a guest OS and a hypervisor, thus dramatically reducing its operations’ overhead. Without a hypervisor, it is the host operating system’s role, via its virtualization capabilities, to provide the isolation and resource allocation to individual containers. As a result, the user space component of the container should be compatible with the host operating system.
+
+#### Operating System-Level Virtualization
+
+**Operating system-level virtualization refers to a kernel’s capability to allow the creation and existence of multiple isolated virtual environments on the same host.** Such environments, known as containers, zones, partitions, virtual kernels, or jails, encapsulate running programs and conceal from them the true nature of their virtual environment, creating an illusion of a real computing environment. As opposed to programs running inside a real environment, where they see all resources such as CPU, network, connected devices, and files, programs running inside a virtual environment are limited to its content and assigned devices.
+
+A real Operating System may allow or deny access to resources, or it may hide resources from programs. An Operating System level virtualized environment may have allocated only a set of the available resources, thus limiting programs’ access to them.
+On a real OS, one or many isolated virtual environments may be created, with each running one or multiple programs. These programs may run concurrently, separately and may even interact with each other.
+
+Operating System level virtualization is typically used to limit usage and securely isolate resources shared between multiple programs or users, and to separate programs to run in their own assigned virtual environments for better security and resource management.
+
+**While Operating System level virtualization requires less overhead than full virtualization because everything is managed at the kernel level without the need to install a guest OS, it limits the OS of the virtual environments to the host Operating System.** Also, the OS-level virtualization introduces a stacked storage management model, implemented by the file-level Copy-on-Write (CoW) mechanism. This CoW mechanism ensures minimal storage space usage when saving files that are being modified. Changes and new data are stored on disk, but data duplication is prevented by making heavy usage of links for referencing original data that remains unchanged.
+
+#### Mechanisms Implementing Operating System-Level Virtualization
+
+While one of the first known mechanisms to implement operating system-level virtualization dates from the early 1980s, the majority of such mechanisms known today were released after the turn of the 21st century. As opposed to the newer virtualization mechanisms, their predecessor only implemented a limited amount of virtualization features for UNIX-like systems. This reveals the level of interest, or lack thereof, the OS-level virtualization received until about two decades ago, when it experienced a major comeback . Both open source software and commercial software mechanisms with heavily expanded virtualization features were released for Linux, Windows, and FreeBSD systems.
+
+Next, let’s explore some of the virtualization mechanisms that paved the way for today’s containers, presented in chronological order, and not in order of importance.
 
 ### Docker
 
 Docker is software that runs on Linux and Windows. It creates, manages, and can even orchestrate containers. The software is currently built from various tools from the **Moby** open-source project. Docker, Inc. is the company that created the technology and continues to create technologies and solutions that make it easier to get the code on your laptop running in the cloud.
 
-<img src=".\images\feature-of-docker.png" style="width:75%; height: 75%;">
+<img src=".\images\feature-of-docker.png" style="width:75%; height: 75%;"/>
 
 - Docker is a platform for developers and sysadmins to develop, ship, and run applications by using containers.
 - Docker helps the user to quickly assemble applications from its components and eliminates the friction during code shipping.
@@ -103,7 +182,7 @@ When most people talk about Docker, they’re referring to the technology that r
 2. The daemon (a.k.a. engine)
 3. The orchestrator
 
-<img src=".\images\TheDocker.png" style="width:75%; height: 75%;">
+<img src=".\images\TheDocker.png" />
 
 The runtime operates at the lowest level and is responsible for starting and stopping containers (this includes building all of the OS constructs such as namespaces and cgroups). Docker implements a tiered runtime architecture with high-level and low-level runtimes that work together. The low-level runtime is called runc and is the reference implementation of Open Containers Initiative (OCI) runtime-spec. Its job is to interface with the underlying OS and start and stop containers. Every running container on a Docker node has a runc instance managing it. The higher-level runtime is called containerd. containerd does a lot more than runc. It manages the entire lifecycle of a container, including pulling images, creating network interfaces, and managing lower-level runc instances. containerd is pronounced “container-dee’ and is a graduated CNCF project used by Docker and Kubernetes as a container runtime.
 
@@ -113,17 +192,36 @@ A major job of the Docker daemon is to provide an easy-to-use standard interface
 
 ### The Open Container Initiative (OCI)
 
+The Open Container Initiative (OCI) was introduced in 2015 by Docker together with other leaders in the container industry. One of the container runtimes implementing the OCI specification is runC.
+
 The OCI is a governance council responsible for standardizing the low-level fundamental components of container infrastructure. In particular it focusses on **image format** and **container runtime**. It’s also true that no discussion of the OCI is complete without mentioning a bit of history. And as with all accounts of history, the version you get depends on who’s doing the talking.
 
 From day one, use of Docker grew like crazy. More and more people used it in more and more ways for more and more things. So, it was inevitable that some parties would get frustrated. This is normal and healthy.
 
 This put the container ecosystem in an awkward position with two competing standards. Getting back to the story, this threatened to fracture the ecosystem and present users and customers with a dilemma. While competition is usually a good thing, **competing standards** is usually not. They cause confusion and slowdown user adoption. Not good for anybody. With this in mind, everybody did their best to act like adults and came together to form the OCI — a lightweight agile council to govern container standards.
 
-At the time of writing, the OCI has published two specifications (standards):
-- The image-spec
-- The runtime-spec
+At the time of writing, the OCI has published three specifications (standards):
+- The Runtime Specification
+- The Image Specification
+- The Distribution Specification
+
+The OCI incorporates the Runtime Specification (runtime-spec), the Image Specification (image-spec), and the most recent Distribution Specification (distribution-spec).
+
+**The Runtime Specification** defines how to run a "filesystem bundle" that is unpacked on disk. An OCI implementation would download and unpack an OCI image into an OCI Runtime filesystem bundle. Then, an OCI Runtime would run the OCI Runtime Bundle.
+
+**The Image Specification** helps with the development of compatible tools to ensure consistent container image conversion into containers.
+
+**The Distribution Specification** standardizes how container images are distributed through image registries.
 
 An analogy that’s often used when referring to these two standards is rail tracks. these two standards are like agreeing on standard sizes and properties of rail tracks, leaving everyone else free to build better trains, better carriages, better signalling systems, better stations. All safe in the knowledge that they’ll work on the standardized tracks. Nobody wants two competing standards for rail track sizes! It’s fair to say that the two OCI speciﬁcations have had a major impact on the architecture and design of the core Docker product. As of Docker 1.11, the Docker Engine architecture conforms to the OCI runtime spec. The OCI is organized under the Linux Foundation.
+
+### Architecture, Description and Main Features of Container Runtimes
+
+**A container runtime is guided by a runtime specification, which describes the configuration, execution environment and the lifecycle of the container.** The role of a container runtime is to provide an environment supporting basic operations with images and the running containers, that is both configurable and consistent, where container processes are able to run. 
+
+**A runtime’s consistency is one of the top benefits for running containers. Regardless of the underlying infrastructure - whether an on-prem Data Center or a Cloud Infrastructure as a Service (IaaS), containers’ behavior is expected to be the same, thus allowing users to develop and test containers on any system across all tiers - from development to production.**
+
+A container runtime is designed to perform several default operations under the hood as a response to user commands. The container runtime extracts the container image content and stores it on an overlay filesystem, that utilizes the Copy-on-Write mechanism for virtual file integrity. When the runtime executes a container, it interacts with the kernel to set resource limits, build isolation layers through virtualization mechanisms like control groups and namespaces in order to run a containerized application as specified by the container image.
 
 ## The Big Picture
 
@@ -173,7 +271,7 @@ Run the **`docker image ls`** command on your Docker host.
 
 ```shell
 $ docker image ls
-``` 
+```
 
 If you are working from a freshly installed Docker host, or Play With Docker, you will have no images and it will look like the previous output. Getting images onto your Docker host is called “pulling”. If you are following along with Linux, pull the `ubuntu:latest` image.
 
@@ -557,7 +655,19 @@ An insecure conﬁguration like this might be suitable for labs, but it’s unac
 
 ## Images
 
-In this chapter we’ll dive deep into Docker images. The aim of the game is to give you a **solid understanding** of what Docker images are, how to perform basic operations, and how they work under-the-hood. We’ll see how to build new images with our own applications inside of them in a later chapter.
+**A container image is a template for a running container and it is created in the form of a tarball with configuration files.** The image includes container configuration options and runtime settings to guide the container’s behavior at runtime. Container runtimes load images to run them as containers, therefore at runtime, a container becomes a running instance of an image, and there may be many containers started from the same image.
+
+There are several tools available to build container images. Some of the container image building tools support only one of the OCI image format or the now retired ACI image format, while other tools build container images based on both formats. Container image building tools offer various methods of image building. 
+
+Docker may use a specific configuration file called a Dockerfile in conjunction with the docker build command, while Podman may use a Containerfile or Dockerfile with the podman build command. Buildah, however, can use a Dockerfile with the buildah bud (build-using-dockerfile) command. 
+
+**Container images can be created from scratch, from another container image, or directly from an existing running container.** Building a container image can be pretty straight forward if default options are used during the build process, but it could become challenging if options are customized. Ultimately, there are also tools to convert images between the two distinct image formats, OCI and ACI.
+
+**An image, just as any program file or package of files, consumes a single type of resource at rest - storage.** However, during certain operations with the image, network bandwidth may be consumed while downloading/uploading the image to/from a container image registry. 
+
+**The storage of a container image follows a layered approach.** The first or bottom layer of an image file will have saved the configuration information of the base image - that is where everything started. This layer is mounted in the running container in a read-only mode. In time, features have been added to the image, and every feature has been saved as an additional layer, one on top of another, while the base image data remains intact. There may be images that started from the same base image, but in time they all took different paths, as various features have been added to serve different purposes for different projects. 
+
+**The layered approach in saving new features helps in reducing the overall disk space footprint of the image. It also avoids data duplication, where only the latest layer’s changes are being saved on the disk and the rest of the bottom level layers are just referenced, and it speeds up the image build process by caching each build step.**
 
 ### Docker images
 
@@ -1234,7 +1344,11 @@ $ docker image ls
 
 ## Containers
 
-A container is the runtime instance of an image. In the same way that you can start a virtual machine (VM) from a virtual machine template, you start one or more containers from a single image. The big difference between a VM and a container is that containers are faster and more lightweight — instead of running a full-blown OS like a VM, containers share the OS/kernel with the host they’re running on. It’s also common for containers to be based on minimalist images that only include software and dependencies required by the application.
+Most times, to ease the understanding of the concept, a container is compared to a regular Virtual Machine - which is a result of full virtualization. **A container, however, is the product of several OS-level virtualization features of the Linux kernel used in conjunction to build a lightweight isolated environment.** These environments provide secure runtimes from simple scripts to full-sized web-servers. 
+
+**It is quite obvious why containers are compared to VMs: they have their own process trees, network interfaces, users, root, file systems, just to name a few reasons.** There are quite a few differences as well, between VMs and containers: containers use the host kernel and are bound to boot the host OS only, and are processes running on the host system managed individually or in groups, while VMs allow for the installation of guest OSes that may be different than the OS of the host system.
+
+**A container is the runtime instance of an image.** In the same way that you can start a virtual machine (VM) from a virtual machine template, you start one or more containers from a single image. The big difference between a VM and a container is that containers are faster and more lightweight — instead of running a full-blown OS like a VM, containers share the OS/kernel with the host they’re running on. It’s also common for containers to be based on minimalist images that only include software and dependencies required by the application.
 
 <img src=".\images\DockerContainers.png" style="width:75%; height: 75%;">
 
@@ -1271,6 +1385,25 @@ At a high level, hypervisors perform **hardware virtualization** — they carve 
 #### Virtual Machine vs. Docker
 
 <img src=".\images\VM-vs-Docker.png" style="width:75%; height: 75%;">
+
+### Container Operations
+
+Since a running container resembles a Virtual Machine and there are tools facilitating various management operations on VMs, then, as expected, there are a variety of operations available to manage a container’s lifecycle - operations facilitated by the container runtimes.
+
+**While some operations may be basic in nature and allow us to create, start, run, pause, resume, stop, restart, and remove/delete a container, other operations may be advanced and allow us to interact directly with the application in the running container or further customize the behavior of the running container.**
+
+**Advanced operations may allow us to:**
+* run a container in the background
+* run a container in daemon mode
+* list and sort containers
+* interact with the container’s environment by:
+** inspecting a running container’s status
+** listing processes inside a container
+** opening an interactive terminal in the container’s environment
+** limiting resources utilization such as CPU and memory
+** setting access privileges.
+
+For troubleshooting purposes, we can also view container events and logs to help determine the cause for any unexpected behavior. Based on the complexity of a container runtime, various operations may or may not be supported.
 
 ### Running containers
 
