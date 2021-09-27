@@ -292,7 +292,7 @@ Instead of gluing each microservice together with scripts and long docker comman
 
 Once the app is *deployed*, you can *manage* its entire lifecycle with a simple set of commands. You can even store and manage the conﬁguration ﬁle in a version control system.
 
-**Compose background**
+### Compose background
 
 In the beginning was *Fig*. Fig was a powerful tool, created by a company called *Orchard*, and it was the best way to manage multi-container Docker apps. It was a Python tool that sat on top of Docker, and let you deﬁne entire multi-container apps in a single YAML ﬁle. You could then deploy and manage the lifecycle of the app with the fig command-line tool.
 
@@ -300,7 +300,9 @@ Behind the scenes, Fig would read the YAML ﬁle and use Docker to deploy and ma
 
 In fact, it was so good, that Docker, Inc. acquired Orchard and re-branded Fig as *Docker Compose*. The command-line tool was renamed from fig to docker-compose, and continues to be an external tool that gets bolted on top of the Docker Engine. Even though it’s never been fully integrated into the Docker Engine, it’s always been popular and widely used.
 
-As things stand today, Compose is still an external Python binary that you have to install on a Docker host. You define multi-container (microservices) apps in a YAML file, pass the YAML file to the docker-compose command line, and Compose deploys it via the Docker API. However, April 2020 saw the announcement of the Compose Specification. is is aimed at creating an open standard for defining multi-container cloud-native apps. The ultimate aim being to greatly simplify the code-to-cloud process.
+As things stand today, Compose is still an external Python binary that you have to install on a Docker host. You define multi-container (microservices) apps in a YAML file, pass the YAML file to the docker-compose command line, and Compose deploys it via the Docker API. 
+
+However, April 2020 saw the announcement of the Compose Specification. It is aimed at creating an open standard for defining multi-container cloud-native apps. The ultimate aim being to greatly simplify the code-to-cloud process.
 
 The speciﬁcation will be community-led and separate from the docker-compose implementation from Docker,Inc. This helps maintain better governance and clearer lines of demarcation. However, we should expect Docker to implement the ﬁll spec in docker-compose.
 
@@ -308,44 +310,46 @@ The spec itself is a great document to learn the details.
 
 Time to see it in action.
 
-**Installing Compose**
+### Installing Compose
 
 Docker Compose is available on multiple platforms. In this section we’ll demonstrate *some* of the ways to install it on Windows, Mac, and Linux. More installation methods exist, but the ones we show here will get you started.
 
-**Installing Compose on Linux**
+### Installing Compose on Linux
 
-Installing Docker Compose on Linux is a two-step process. First, you download the binary using the curl command. Then you make it executable using chmod. For Docker Compose to work on Linux, you’ll need a working version of the Docker Engine. The following command will download version 1.25.5 of Docker Compose and copy it to /usr/bin/local. You can check the releases page on [GitHub](https://github.com/docker/compose/releases)[¹³](#br123)[ ](#br123)for the latest version and replace the 1.25.5 in the URL with the version you want to install.
+Installing Docker Compose on Linux is a two-step process. First, you download the binary using the curl command. Then you make it executable using chmod. For Docker Compose to work on Linux, you’ll need a working version of the Docker Engine. The following command will download version 1.25.5 of Docker Compose and copy it to /usr/bin/local. You can check the releases page on [GitHub](https://github.com/docker/compose/releases)[¹³](#br123)[ ](#br123) for the latest version and replace the 1.25.5 in the URL with the version you want to install.
 
 The command may wrap over multiple lines in the book. If you run the command on a single line you will need to remove any backslashes (\).
 
-```
+```sh
 $ sudo curl -L \
 "https://github.com/docker/compose/releases/download/1.25.5/docker-compose-$(uname -s)-$(uname -m)" \
 -o /usr/local/bin/docker-compose
 ```
-Now that you’ve downloaded the docker-compose binary, use the following chmod command to make it
 
-executable.
+Now that you’ve downloaded the docker-compose binary, use the following chmod command to make it executable.
 
+```sh
 $ sudo chmod +x /usr/local/bin/docker-compose
+```
 
 Verify the installation and check the version.
 
+```sh
 $ docker-compose --version
-
 docker-compose version 1.25.5, build 1110ad01
+```
 
 You’re ready to use Docker Compose on Linux.
 
 You can also use pip to install Compose from its Python package. But I don’t want to waste valuable pages showing every possible installation method. Enough is enough, time to move on.
 
-**Compose ﬁles**
+### Compose ﬁles
 
 Compose uses YAML ﬁles to deﬁne multi-service applications. YAML is a subset of JSON, so you can also use JSON. However, all the examples in this chapter will be YAML. The default name for a Compose YAML ﬁle is docker-compose.yml. However, you can use the -f ﬂag to specify custom ﬁlenames.
 
 The following example shows a very simple Compose ﬁle that deﬁnes a small Flask app with two microservices (web-fe and redis). The app is a simple web server that counts the number of visits to a web page and stores the value in Redis. We’ll call the app counter-app and use it as the example application for the rest of the chapter.
 
-```
+```yaml
 version: "3.8"
 services:
     web-fe:
@@ -370,7 +374,6 @@ networks:
 
 volumes:
     counter-vol:
-
 ```
 
 We’ll skip through the basics of the ﬁle before taking a closer look.
@@ -395,17 +398,16 @@ The top-level networks key tells Docker to create new networks. By default, Comp
 
 The following code can be used in your Compose ﬁle to create a new *overlay* network called over-net that allows standalone containers to connect to it (attachable).
 
-```
+```yaml
 networks:
     over-net:
-    driver: overlay
-    attachable: true
+        driver: overlay
+        attachable: true
 ```
 
 The top-level volumes key is where you tell Docker to create new volumes.
 
-
-**Our speciﬁc Compose ﬁle**
+### Our speciﬁc Compose ﬁle
 
 The example ﬁle we’ve listed uses the Compose version 3.8 ﬁle format, deﬁnes two services, deﬁnes a network called counter-net, and deﬁnes a volume called counter-vol.
 
@@ -423,11 +425,11 @@ Within the deﬁnition of the web-fe service, we give Docker the following instr
 
     - command: python app.py This tells Docker to run a Python app called app.py as the main app in the container. The app.py ﬁle must exist in the image, and the image must contain Python. The Dockerﬁle takes care of both of these requirements.
     
-    - ports: Tells Docker to map port 5000 inside the container (-target) to port 5000 on the host (published). This means that traﬃc sent to the Docker host on port 5000 will be directed to port 5000 on the container.The app inside the container listens on port 5000.
+    - ports: Tells Docker to map port 5000 inside the container (target) to port 5000 on the host (published). This means that traﬃc sent to the Docker host on port 5000 will be directed to port 5000 on the container. The app inside the container listens on port 5000.
     
     - networks: Tells Docker which network to attach the service’s container to. The network should already exist, or be deﬁned in the networks top-level key. If it’s an overlay network, it will need to have the attachable ﬂag so that standalone containers can be attached to it (Compose deploys standalone containers instead of Docker Services).
     
-    - volumes: Tells Docker to mount the counter-vol volume (source:) to /code (target:) inside the container. The counter-vol volume needs to already exist, or be deﬁned in the volumes top-level key at the bottom of the ﬁle.
+    - volumes: Tells Docker to mount the counter-vol volume (source) to /code (target) inside the container. The counter-vol volume needs to already exist, or be deﬁned in the volumes top-level key at the bottom of the ﬁle.
 
 In summary, Compose will instruct Docker to deploy a single standalone container for the web-fe service. It will be based on an image built from a Dockerﬁle in the same directory as the Compose ﬁle. This image will be started as a container and run app.py as its main app. It will expose itself on port 5000 on the host, attach to the counter-net network, and mount a volume to /code.
 
@@ -443,10 +445,10 @@ As both services will be deployed onto the same counter-net network, they will b
 
 Now that we understand how the Compose ﬁle works, let’s deploy it!
 
-
-**Deploying an app with Compose**
+### Deploying an app with Compose
 
 In this section, we’ll deploy the app deﬁned in the Compose ﬁle from the previous section. To do this, you’ll need the following 4 ﬁles from https://github.com/nigelpoulton/counter-app:
+
 - Dockerﬁle
 - app.py
 - requirements.txt
@@ -454,7 +456,7 @@ In this section, we’ll deploy the app deﬁned in the Compose ﬁle from the p
 
 Clone the Git repo locally.
 
-```
+```shell
 $ git clone https://github.com/nigelpoulton/counter-app.git
 
 Cloning into 'counter-app'...
@@ -469,8 +471,7 @@ Cloning the repo will create a new sub-directory called counter-app. This will c
 
 Change into the counter-app directory and check the ﬁles are present.
 
-
-```
+```shell
 $ cd counter-app
 $ ls
 app.py docker-compose.yml Dockerfile requirements.txt ...
@@ -490,7 +491,7 @@ The app.py ﬁle is obviously the core of the application. But docker-compose.ym
 
 Let’s use Compose to bring the app up. You must run the all of the following commands from within the counter-app directory that you just cloned from GitHub.
 
-```
+```shell
 $ docker-compose up &
 ```
 
@@ -502,19 +503,17 @@ We’ll step through what happened in a second, but ﬁrst let’s talk about th
 
 By default, `docker-compose up` expects the name of the Compose ﬁle to docker-compose.yml. If your Compose ﬁle has a diﬀerent name, you need to specify it with the -f ﬂag. The following example will deploy an application from a Compose ﬁle called prod-equus-bass.yml
 
-```
+```shell
 $ docker-compose -f prod-equus-bass.yml up
 ```
 
 It’s also common to use the -d ﬂag to bring the app up in the background. For example:
 
-```
+```shell
 docker-compose up -d
 ```
 
---OR--
-
-```
+```shell
 docker-compose -f prod-equus-bass.yml up -d
 ```
 
@@ -522,7 +521,7 @@ Our example brought the app up in the foreground (we didn’t use the -d ﬂag),
 
 Now that the app is built and running, we can use normal docker commands to view the images, containers networks, and volumes that Compose created.
 
-```
+```shell
 $ docker image ls
 ```
 
@@ -530,7 +529,7 @@ We can see that three images were either built or pulled as part of the deployme
 
 The `counter-app\_web-fe:latest` image was created by the build: . instruction in the `docker-compose.yml` ﬁle. This instruction caused Docker to build a new image using the Dockerﬁle in the same directory. It contains the application code for the Python Flask web app, and was built from the python:alpine image. See the contents of the Dockerfile for more information.
 
-```
+```Dockerfile
 FROM python:alpine                  << Base image          
 ADD . /code                         << Copy app into image 
 WORKDIR /code                       << Set working directory
@@ -546,13 +545,13 @@ The redis:alpine image was pulled from Docker Hub by the image: "redis:alpine" i
 
 The following container listing shows two running containers. The name of each is preﬁxed with the name of the project (name of the build context directory). Also, each one has a numeric suﬃx that indicates the instance number — this is because Compose allows for scaling.
 
-```
+```shell
 $ docker container ls
 ```
 
 The counter-app\_web-fe container is running the application’s web front end. This is running the app.py code and is mapped to port 5000 on all interfaces on the Docker host. We’ll connect to this in just a second. The following network and volume listings show the counter-app\_counter-net network and counter-app\_- counter-vol volume.
 
-```
+```shell
 $ docker network ls
 ```
 
@@ -564,19 +563,18 @@ Hitting your browser’s refresh button will cause the counter to increment. Hav
 
 If you brought the application up using the &, you will be able to see the HTTP 200 response codes being logged in the terminal window. These indicate successful requests, and you’ll see one for each time you load the web page.
 
-```
+```log
 web-fe\_1 | 172.20.0.1 - - [29/Apr/2020 10:15:27] "GET / HTTP/1.1" 200 -
 web-fe\_1 | 172.20.0.1 - - [29/Apr/2020 10:15:28] "GET / HTTP/1.1" 200 -
 ```
 
 Congratulations. You’ve successfully deployed a multi-container application using Docker Compose!
 
-
-**Managing an app with Compose**
+### Managing an app with Compose
 
 In this section, you’ll see how to start, stop, delete, and get the status of applications being managed by Docker Compose. You’ll also see how the volume we’re using can be used to directly inject updates to the app’s web front-end. As the application is already up, let’s see how to bring it down. To do this, replace the up sub-command with down.
 
-```
+```shell
 $ docker-compose down
 ```
 
@@ -588,7 +586,7 @@ Also, any images that were built or pulled as part of the docker-compose up oper
 
 Let’s look at a few other docker-compose sub-commands. Use the following command to bring the app up again, but this time in the background.
 
-```
+```shell
 $ docker-compose up -d
 ```
 
@@ -596,7 +594,7 @@ See how the app started much faster this time — the` counter-vol volume` alrea
 
 Show the current state of the app with the `docker-compose ps` command.
 
-```
+```shell
 $ docker-compose ps
 ```
 
@@ -604,18 +602,17 @@ You can see both containers, the commands they are running, their current state,
 
 Use `docker-compose top` to list the processes running inside of each service (container).
 
-```
+```shell
 $ docker-compose top
 ```
 
-
 The PID numbers returned are the PID numbers as seen from the Docker host (not from within the containers). Use the `docker-compose stop` command to stop the app without deleting its resources. Then show the status of the app with `docker-compose ps`.
 
-```
+```shell
 $ docker-compose stop
 ```
 
-```
+```shell
 $ docker-compose ps
 ```
 
@@ -623,17 +620,17 @@ As you can see, stopping a Compose app does not remove the application deﬁniti
 
 Restart the app with the `docker-compose restart` command.
 
-```
+```shell
 $ docker-compose restart
 ```
 
-```
+```shell
 $ docker-compose ps
 ```
 
 Use the `docker-compose down` command to **stop and delete** the app with a single command.
 
-```
+```shell
 $ docker-compose down
 ```
 
@@ -641,12 +638,13 @@ The app is now deleted. Only its images, volumes, and source code remain.
 
 Let’s deploy the app one last time and see a lile more about how the volume works.
 
-```
+```shell
 $ docker-compose up -d
 ```
 
 If you look in the Compose ﬁle, you’ll see that it deﬁnes a volume called counter-vol and mounts it in to the web-fe container at /code.
-```
+
+```yaml
 services:
     web-fe:
     <Snip>
@@ -658,15 +656,16 @@ services:
 volumes:
     counter-vol:
 ```
+
 The ﬁrst time you deployed the app, Compose checked to see if a volume called counter-vol already existed. It did not, so Compose created it. You can see it with the docker volume ls command, and you can get more detailed information with docker volume inspect counter-app\_counter-vol.
 
-```
+```shell
 $ docker volume ls
 ```
 
 It’s also worth knowing that Compose builds networks and volumes **before** deploying services. This makes sense, as networks and volumes are lower-level infrastructure objects that are consumed by services (containers). The following snippet shows Compose creating the network and volume as its ﬁrst two tasks (even before building and pulling images).
 
-```
+```shell
 $ docker-compose up -d
 ```
 
@@ -678,15 +677,15 @@ This all means we can make changes to ﬁles in the volume, from the outside of 
 
 > **Note:** The following will not work if you are using Docker Desktop on a Mac or Windows 10 PC.
 
-This is because Docker Desktop runs Docker inside of a lightweight VM and volumes exist inside the VM.Use your favourite text editor to edit the app.py ﬁle in the projects working directory. We’ll use vim in the example.
+This is because Docker Desktop runs Docker inside of a lightweight VM and volumes exist inside the VM. Use your favourite text editor to edit the app.py ﬁle in the projects working directory. We’ll use vim in the example.
 
-```
+```shell
 $ vim ~/counter-app/app.py
 ```
 
 Change text between the double quote marks (“”) on line 22. The line starts with return "What's up...". Enter any text you like, as long as it’s within the double-quote marks, and save your changes. Now that you’ve updated the app, you need to copy it into the volume on the Docker host. each Docker volume is exposed at a location within the Docker host’s ﬁlesystem, as well as a mount point in one or more containers. Use the following docker volume inspect command to ﬁnd where the volume is exposed on the Docker host.
 
-```
+```shell
 $ docker volume inspect counter-app\_counter-vol | grep Mount
 
 "Mountpoint": "/var/lib/docker/volumes/counter-app\_counter-vol/\_data",
@@ -694,7 +693,7 @@ $ docker volume inspect counter-app\_counter-vol | grep Mount
 
 Copy the updated app ﬁle to the volume’s mount point on your Docker host (remember that this will not work on Docker Desktop). As soon as you perform the copy operation, the updated ﬁle will appear in the /code directory in the web-fe container. The operation will overwrite the existing /code/app.py ﬁle in the container.
 
-```
+```shell
 $ cp ~/counter-app/app.py \
 
 /var/lib/docker/volumes/counter-app\_counter-vol/\_data/app.py
@@ -704,8 +703,7 @@ The updated app ﬁle is now on the container. Connect to the app to see your ch
 
 Obviously you wouldn’t do an update operation like this in production, but it’s a real time-saver in development. Congratulations. You’ve deployed and managed a simple multi-container app using Docker Compose. Before reminding ourselves of the major docker-compose commands, it’s important to understand that this was a very simple example. Docker Compose is capable of deploying and managing far more complex applications.
 
-
-## 10: Docker Swarm
+## Docker Swarm
 
 Docker Swarm is two main things:
 
@@ -726,7 +724,6 @@ We’ll split the deep dive part of this chapter as follows:
 - Deploy some swarm services
 - Troubleshooting
 
-
 ### Swarm primer
 
 On the clustering front, a *swarm* consists of one or more Docker *nodes*. These can be physical servers, VMs, Raspberry Pi’s, or cloud instances. The only requirement is that all nodes have Docker installed and can communicate over reliable networks.
@@ -737,7 +734,7 @@ The conﬁguration and state of the *swarm* is held in a distributed *etcd* data
 
 Something that’s game changing on the clustering front is the approach to security. TLS is so tightly integrated that it’s impossible to build a swarm without it. In today’s security conscious world, things like this deserve all the plaudits they get. *Swarm* uses TLS to encrypt communications, authenticate nodes, and authorize roles.
 
-Automatic key rotation is also thrown in as the icing on the cake. And the best part… it all happens so smoothly that you don’t even know it’s there.
+Automatic key rotation is also thrown in as the icing on the cake. And the best part of it all happens so smoothly that you don’t even know it’s there.
 
 On the application orchestration front, the atomic unit of scheduling on a swarm is the *service*. This is a new object in the API, introduced along with swarm, and is a higher level construct that wraps some advanced features around containers. These include scaling, rolling updates, and simple rollbacks. It’s useful to think of a *service* as an enhanced container.
 
@@ -775,16 +772,16 @@ The following steps will put **mgr1** into *swarm mode* and initialize a new swa
 
 This example will use the IP addresses and DNS names of the nodes shown in Figure. Yours may be diﬀerent.
 
-
 1. Log on to **mgr1** and initialize a new swarm (don’t forget to use backticks instead of backslashes if you’re following along with Windows in a PowerShell terminal).
 
-```
+```shell
 $ docker swarm init \
 --advertise-addr 10.0.0.1:2377 \
 --listen-addr 10.0.0.1:2377
 
 Swarm initialized: current node (d21lyz...c79qzkx) is now a manager.
 ```
+
 The command can be broken down as follows:
 
     - `docker swarm init`: This tells Docker to initialize a new swarm and make this node the ﬁrst manager. It also enables swarm mode on the node.
@@ -799,7 +796,7 @@ The default port that swarm mode operates on is **2377**. This is customizable, 
 
 2. List the nodes in the swarm.
 
-```
+```shell
 $ docker node ls
 ```
 
@@ -807,7 +804,7 @@ Notice that **mgr1** is currently the only node in the swarm, and is listed as t
 
 3. From **mgr1** run the docker swarm join-token command to extract the commands and tokens required to add new workers and managers to the swarm.
 
-```
+```shell
 $ docker swarm join-token worker
 
 To add a manager to this swarm, run the following command:
@@ -826,7 +823,7 @@ Notice that the commands to join a worker and a manager are identical apart from
 
 4. Log on to **wrk1** and join it to the swarm using the docker swarm join command with the worker join token.
 
-```
+```shell
 $ docker swarm join \
     --token SWMTKN-1-0uahebax...c87tu8dx2c \
     10.0.0.1:2377 \
@@ -842,7 +839,7 @@ The `--advertise-addr`, and `--listen-addr` ﬂags optional. I’ve added them a
 
 6. Log on to **mgr2** and join it to the swarm as a manager using the docker swarm join command with the manager join token.
 
-```
+```shell
 $ docker swarm join \
     --token SWMTKN-1-0uahebax...ue4hv6ps3p \
     10.0.0.1:2377 \
@@ -856,20 +853,19 @@ This node joined a swarm as a manager.
 
 8. List the nodes in the swarm by running docker node ls from any of the manager nodes in the swarm.
 
-```
+```shell
 $ docker node ls
 ```
 
 Congratulations. You’ve just created a 6-node swarm with 3 managers and 3 workers. As part of the process, the Docker Engine on each node was automatically put into *swarm mode* and the *swarm* was automatically secured with TLS.
 
-If you look in the MANAGER STATUS column you’ll see the three manager nodes are showing as either “Reachable” or “Leader”. We’ll learn more about leaders shortly. Nodes with nothing in the MANAGER STATUS column are *workers*. Also note the asterisk (\*) after the ID on the line showing **mgr2**. This tells you which node you are logged on to and executing commands from. In this instance the command was issued from **mgr2**.
+If you look in the MANAGER STATUS column you’ll see the three manager nodes are showing as either “Reachable” or “Leader”. We’ll learn more about leaders shortly. Nodes with nothing in the MANAGER STATUS column are *workers*. Also note the asterisk (\*) after the ID on the line showing **mgr2**. This tells you which node you are logged on to and executing commands from.
 
 > **Note:** It’s a pain to specify the --advertise-addr and --listen-addr ﬂags every time you join a node to the swarm. However, it can be a much bigger pain if you get the network conﬁguration of your swarm wrong. Also, manually adding nodes to a swarm is unlikely to be a daily task, so it’s worth the extra up-front eﬀort to use the ﬂags. It’s your choise though. In lab environments or nodes with only a single IP you probably don’t need to use them. 
 
 Now that you have a *swarm* up and running, let’s take a look at manager high availability (HA).
 
-
-**Swarm manager high availability (HA)**
+### Swarm manager high availability (HA)
 
 So far, we’ve added three manager nodes to a swarm. Why three? And how do they work together?
 
@@ -881,15 +877,15 @@ This process is shown in Figure. Step 1 is the command coming in to a *manager* 
 
 <img src=".\images\SwarmHA.png" style="width:75%; height: 75%;">
 
-If you look closely at Figure, you’ll notice that managers are either *leaders* or *followers*. This is Raft terminology, because swarm uses an implementation of the Raft consensus algorithm to maintain a consistent cluster state across multiple highly available managers.
+**If you look closely at Figure, you’ll notice that managers are either *leaders* or *followers*. This is Raft terminology, because swarm uses an implementation of the Raft consensus algorithm to maintain a consistent cluster state across multiple highly available managers.**
 
 On the topic of HA, the following two best practices apply:
     1. Deploy an odd number of managers.
     2. Don’t deploy too many managers (3 or 5 is recommended)
 
-Having an odd number of *managers* reduces the chances of split-brain conditions. For example, if you had 4 managers and the network partitioned, you could be left with two managers on each side of the partition. This is known as a split brain — each side knows there used to be 4 but can now only see 2. But crucially, neither side has any way of knowing if the other two are still alive and whether it holds a majority (quorum). A swarm cluster continues to operate during split-brain conditions, but you are no longer able to alter the conﬁguration or add and manage application workloads.
+**Having an odd number of *managers* reduces the chances of split-brain conditions.** For example, if you had 4 managers and the network partitioned, you could be left with two managers on each side of the partition. This is known as a split brain — each side knows there used to be 4 but can now only see 2. But crucially, neither side has any way of knowing if the other two are still alive and whether it holds a majority (quorum). A swarm cluster continues to operate during split-brain conditions, but you are no longer able to alter the conﬁguration or add and manage application workloads.
 
-However, if you have 3 or 5 managers and the same network partition occurs, it is impossible to have an equal number of managers on both sides of the partition. This means that one side achieves quorum and full cluster management services remain available. The example on the right side of Figure  shows a partitioned cluster where the left side of the split knows it has a majority of managers.
+However, if you have 3 or 5 managers and the same network partition occurs, it is impossible to have an equal number of managers on both sides of the partition. This means that one side achieves quorum and full cluster management services remain available. The example on the right side of Figure shows a partitioned cluster where the left side of the split knows it has a majority of managers.
 
 <img src=".\images\SwarmHA2.png" style="width:75%; height: 75%;">
 
@@ -897,22 +893,23 @@ As with all consensus algorithms, more participants means more time required to 
 
 A ﬁnal word of caution regarding manager HA. While it’s obviously a good practice to spread your managers across availability zones within your network, you need to make sure the networks connecting them are reliable, as network partitions can be a diﬃcult to troubleshoot and resolve. This means, at the time of writing, the nirvana of hosting your active production applications and infrastructure across multiple cloud providers such as AWS and Azure is a bit of a daydream. Take the time and eﬀort to ensure your managers and workers are connected via reliable high-speed networks.
 
-**Built-in Swarm security**
+### Built-in Swarm security
 
-Swarm clusters have a ton of built-in security that’s conﬁgured out-of-the-box with sensible defaults — CA settings, join tokens, mutual TLS, encrypted cluster store, encrypted networks, cryptographic node ID’s and more. See **Chapter 15: Security in Docker** for a detailed look at these.
+Swarm clusters have a ton of built-in security that’s conﬁgured out-of-the-box with sensible defaults — CA settings, join tokens, mutual TLS, encrypted cluster store, encrypted networks, cryptographic node ID’s and more.
 
-**Locking a Swarm**
+### Locking a Swarm
 
 Despite all of this built-in native security, restarting an older manager or restoring an old backup has the potential to compromise the cluster. Old managers re-joining a swarm automatically decrypt and gain access to the Raft log time-series database — this can pose security concerns. Restoring old backups can also wipe the current swarm conﬁguration. 
 
-To prevent situations like these, Docker allows you to lock a swarm with the Autolock feature. This forces restarted managers to present the cluster unlock key before being admied back into the cluster.
+To prevent situations like these, Docker allows you to lock a swarm with the Autolock feature. This forces restarted managers to present the cluster unlock key before being admited back into the cluster.
 
 It’s possible to apply a lock directly to a new swarm by passing the `--autolock` ﬂag to the `docker swarm init` command. However, we’ve already built a swarm, so we’ll lock our existing swarm with the `docker swarm update` command.
 
 Run the following command from a swarm manager.
 
-```
+```shell
 $ docker swarm update --autolock=true
+
 Swarm updated.
 To unlock a swarm manager after it restarts, run the `docker swarm unlock` command and provide the following key:
     
@@ -925,14 +922,15 @@ Be sure to keep the unlock key in a secure place. You can always check your curr
 
 Restart one of your manager nodes to see if it automatically re-joins the cluster. You may need to prepend the command with `sudo`.
 
-```
+```shell
 $ service docker restart
 ```
 
 Try and list the nodes in the swarm.
 
-```
+```shell
 $ docker node ls
+
 Error response from daemon: Swarm is encrypted and needs to be unlocked before it can be used.
 ```
 
