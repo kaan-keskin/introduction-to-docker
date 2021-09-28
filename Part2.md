@@ -42,7 +42,7 @@ Containers are all about making apps simple to **build**, **ship**, and **run**.
 
 Once your app is containerized (made into a container image), you’re ready to share it and run it as a container.
 
-<img src=".\images\Containerizing.png" style="width:75%; height: 75%;">
+<img src=".\images\Containerizing.png" style="width:75%; height: 75%;"/>
 
 ### Containerize a single-container app
 
@@ -104,7 +104,7 @@ Next, the Dockerﬁle uses the WORKDIR instruction to set the working directory 
 
 Then the RUN npm install instruction creates a new layer and uses npm to install application dependencies listed in the package.json ﬁle in the build context. It runs within the context of the WORKDIR set in the previous instruction, and installs the dependencies into the newly created layer. 
 
-<img src=".\images\Dockerfile.png" style="width:75%; height: 75%;">
+<img src=".\images\Dockerfile.png" style="width:75%; height: 75%;"/>
 
 The application exposes a web service on TCP port 8080, so the Dockerﬁle documents this with the EXPOSE 8080 instruction. This is added as image metadata and not an image layer. Finally, the ENTRYPOINT instruction is used to set the main application that the image (container) should run. This is also added as metadata and not an image layer.
 
@@ -123,6 +123,250 @@ $ docker image ls
 ```
 
 You can use the docker image inspect web:latest command to verify the conﬁguration of the image. It will list all of the settings that were conﬁgured from the Dockerﬁle. Look out for the list of image layers and the Entrypoint command.
+
+### Dockerfile Overview
+
+<img src=".\images\dockerfile-overview.png" style="width:75%; height: 75%;"/>
+
+<img src=".\images\dockerfile-overview-2.png" style="width:75%; height: 75%;"/>
+
+### Dockerfile Format
+
+<img src=".\images\dockerfile-format.png" style="width:75%; height: 75%;"/>
+
+### Dockerfile Instructions
+
+<img src=".\images\dockerfile-instructions.png" style="width:75%; height: 75%;"/>
+
+There are several instructions available to aid us in building the desired images. The full list of instructions is available in Docker's official Documentation. The instructions can be divided into two distinct categories - build time and run time instructions.
+
+Build Time instructions are used to build the image from the Dockerfile and Run Time instructions are used while a container is starting from the pre-built image.
+
+#### Build Time Instructions
+
+**FROM**
+
+This instruction initializes a new build stage and defines the base image used to build our resulting image. Dockerfile must start with this instruction, but it may be preceded only by ARG instructions to define arguments to be used by subsequent FROM instructions. Multiple FROM instructions can be found in Dockerfile.
+
+```dockerfile
+FROM [--platform=<platform>]<image>[:<tag>][AS <name>]
+FROM [--platform=<platform>]<image>[@<digest>][AS <name>]
+
+FROM --platform=linux/amd64 alpine:3.10 AS base-alpine
+```
+
+**ARG**
+
+This instruction may be placed before FROM, or after it. When it is found before FROM, it is considered outside of the build stage, and its value cannot be used in any instruction after FROM. However, the default value of an ARG declared before the first FROM can be invoked with an ARG instruction followed by the ARG name and no value. When the ​ARG​ instruction is declared, we can pass a variable at build time:
+
+```dockerfile
+ARG <name>[=<default value>
+ARG BUILD_NO
+```
+```shell
+$ docker build --build-arg BUILD_NO=v2
+```
+
+**RUN**
+
+This instruction is used to run commands inside the intermediate container created from the base image during the build process, and commit the results as a new image. RUN may be used in both shell and exec forms. In shell form the command is run by default in a shell such as /bin/sh -c in Linux or cmd /S /C in Windows. However, the shell can be modified by passing a desired shell, or with the SHELL command.
+
+```dockerfile
+RUN ["executable", "param1", "param2"]  # exec form
+RUN <command>                           # shell form
+RUN ["/bin/bash", "-c", "echo New Shell"] # exec form
+RUN /bin/bash -c 'echo New Shell'.        # shell form 
+```
+
+**LABEL**
+
+It adds metadata to the resulting image in the key-value pair format:
+
+```dockerfile
+LABEL <key1>=<value1> <key2>=<value2> <key3>=<value3> ...
+LABEL version="1.0" env="dev"
+```
+
+**EXPOSE**
+
+This instruction defines network ports we want to open from the container, for external entities to connect with the container on those exposed ports:
+
+```dockerfile
+EXPOSE <port> [<port>/<protocol>...]
+EXPOSE 80/tcp
+EXPOSE 80/udp
+```
+
+**COPY**
+
+This instruction allows content to be copied from our build context to the intermediate container which would get committed to create the resulting image. It has the following forms:
+
+```dockerfile
+COPY [--chown=<user>:<group>]<src>... <dest>
+COPY [--chown=<user>:<group>]["<src>",... "<dest>"]
+```
+
+The second form is required when the source name contains white spaces.
+
+```dockerfile
+COPY --chown=2000:mygroup /host/path/file* /container/filesystem/
+```
+
+**ADD**
+
+Similar to COPY, but it provides more features, such as accepting a URL for source, and accepting a tar file as source which is extracted at destination.
+
+```dockerfile
+ADD [--chown=<user>:<group>]<src>... <dest>
+ADD [--chown=<user>:<group>]["<src>",... "<dest>"]
+ADD https://raw.githubusercontent.com/lfstudent/image.png /downloads/logo.png
+```
+
+**WORKDIR**
+
+This instruction sets the working directory for any RUN​, CMD, ENTRYPOINT, COPY and ADD instructions that follow it in the Dockerfile:
+
+```dockerfile
+WORKDIR /path/to/workdir
+```
+
+In the example below, run.sh​ would run from /code​:
+
+```dockerfile
+RUN mkdir /code
+COPY run.sh /code
+WORKDIR /code
+CMD run.sh
+```
+
+**ENV**
+
+This instruction sets environment variables inside the container:
+
+```dockerfile
+ENV <key>=<value>
+ENV WEB="192.168.2.3"
+```
+
+**VOLUME**
+
+To create a mount point and mount external storage on it:
+
+```dockerfile
+VOLUME ["/path/data"]
+VOLUME /path/data
+```
+
+**USER**
+
+To set the user name or UID of the resulting image for any subsequent ​RUN​, ​CMD and ENTRYPOINT​ instructions that follow it in the Dockerfile.
+
+```dockerfile
+USER <user>[:<group>]
+USER <UID>[:<GID>]
+
+USER student:student
+USER 1000:1000
+```
+
+**ONBUILD**
+
+Defines instructions to be executed at a later time, when the resulting image from the current build process becomes the base image of any other build:
+
+```dockerfile
+ONBUILD <INSTRUCTION>
+ONBUILD RUN pip install docker --upgrade
+```
+
+For example, let's take the image created from the ​ Dockerfile​ which has the instruction lfstudent/python:onbuild​ . This image becomes the base image in ​ Dockerfile​ , like the following:
+
+```dockerfile
+FROM lfstudent/python:onbuild
+...
+```
+
+Then, while creating the image, we would see this message:
+
+```shell
+Step 1 : FROM lfstudent/python:onbuild
+# Executing 1 build trigger...
+Step 1 : RUN pip install docker --upgrade
+---> Running in c5503d7c1475
+...
+```
+
+**STOPSIGNAL**
+
+This instruction allows us to set a system call signal that will be sent to a container to exit, such as 9, SIGNAME, or SIGKILL:
+
+```dockerfile
+STOPSIGNAL signal
+```
+
+This is useful for the definition of a custom exit signal for our container.
+
+**HEALTHCHECK**
+
+At times, while our container is running, the application inside may have crashed. Ideally, a container with such behavior should be stopped. To prevent a container from reaching that state, application readiness and liveliness are defined with the HEALTHCHECK​ instruction, available in the following forms:
+
+```dockerfile
+HEALTHCHECK [OPTIONS] CMD command
+HEALTHCHECK NONE
+HEALTHCHECK --interval=5m --timeout=3s CMD curl -f http://localhost/ || exit 1
+```
+
+**SHELL**
+
+To define a new default shell for commands that run in Shell form​, if the defaults are not desired (default in Linux is ​ /bin/sh -c, while in Windows is ​ cmd /S /C​. With the​ SHELL​ instruction we may change the default shell used to run commands in shell form.
+
+```dockerfile
+SHELL ["/bin/bash", "-c" ]
+```
+
+#### Run Time Instructions
+
+**CMD**
+
+This is a runtime instruction executed when the container is started from the resulting image. There can only be one CMD​ instruction in a Dockerfile​. If there are more than one CMD​ instructions, then only the last one would take effect. The CMD​ instruction provides defaults to the container, which get executed from the resulting image. 
+
+CMD is used in three forms:
+- Shell form: CMD command param1 param2
+- Exec form (preferred): CMD ["executable","param1","param2"]
+- As default parameters to ENTRYPOINT - CMD ["param1","param2"]
+
+In the Dockerfile of nginx​ container image we noticed the following:
+
+```dockerfile
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+It means that when the container starts from the nginx​ image, by default, it runs the nginx -g daemon off; command to start the nginx daemon​. We can override the defaults defined by CMD​. In the following example, we are starting the /bin/sh​ application instead of the nginx daemon at start time.
+
+```shell
+$ docker run -it nginx /bin/sh
+```
+
+**ENTRYPOINT**
+
+Similar to CMD​, ENTRYPOINT​ is also a runtime instruction. But the executable/command provided during the build time cannot be overridden at runtime. Although we can change the arguments to it, whatever is passed after the executable/command, is considered an argument to the executable/command. There can only be one ENTRYPOINT​ instruction. 
+
+It is used in two forms: 
+- Shell form: ENTRYPOINT command param1 param2
+- Exec form: ENTRYPOINT ["executable", "param1", "param2"]
+
+CMD​ can be used in conjunction with ENTRYPOINT​, but in that case, CMD​ provides the default arguments to ENTRYPOINT.
+
+### Exclude Files and Directories from Build with .dockerignore
+
+During an image build, the Docker client zips the referenced context folder and sends it to the Docker Host. If we want to exclude some files and directories during the ​ docker image build​ process, then we should list them in the .dockerignore​ file in the referenced folder:
+
+```shell
+$ cat .dockerignore
+
+code
+tmp
+test.py
+```
 
 ### Pushing images
 
