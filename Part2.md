@@ -940,6 +940,7 @@ Use the `docker swarm unlock` command to unlock the swarm for the restarted mana
 
 ```
 $ docker swarm unlock
+
 Please enter unlock key: <enter your key>
 ```
 
@@ -949,12 +950,9 @@ locking your swarm and protecting the unlock key is recommended for production e
 
 Now that you’ve got our *swarm* built and understand the infrastructure concepts of *leaders* and *manager HA*, let’s move on to the application aspect of *services*.
 
+### Swarm services
 
-**Swarm services**
-
-Everything we do in this section of the chapter gets improved on by Docker Stacks in Chapter 14. However, it’s important that you learn the concepts here so that you’re prepared for Chapter 14.
-
-Like we said in the swarm primer… *services* are a new construct introduced with Docker 1.12, and they only apply to *swarm mode*.
+Like we said in the swarm primer, *services* are a new construct introduced with Docker 1.12, and they only apply to *swarm mode*.
 
 Services let us specify most of the familiar container options, such as *name, port mappings, attaching to networks,* and *images*. But they add important cloud-native features, including *desired state* and automatic reconciliation. For example, swarm services allow us to declaratively deﬁne a desired state for an application that we can apply to the swarm and let the swarm take care of deploying it and managing it.
 
@@ -970,7 +968,7 @@ We’ll look at stack ﬁles in a later chapter. For now we’ll focus on the im
 
 > **Note:** The command to create a new service is the same on Windows. However, the image used in this example is a Linux image and will not work on Windows. You can substitute the image for a Windows web server image and the command will work. Remember, if you are typing Windows commands from a PowerShell terminal you will need to use the backtick (‘) to indicate continuation on the next line.
 
-```
+```shell
 $ docker service create --name web-fe \
     -p 8080:8080 \
     --replicas 5 \
@@ -989,12 +987,11 @@ After we hit Return, the command was sent to a manager node, and the manager act
 
 As an example, if a *worker* hosting one of the 5 **web-fe** replicas fails, the *observed state* of the **web-fe** service will drop from 5 replicas to 4. This will no longer match the *desired state* of 5, so the swarm will start a new **web-fe** replica to bring the *observed state* back in line with *desired state*. This behavior is a key tenet of cloud-native applications and allows the service to self-heal in the event of node failures and the likes.
 
-
-**Viewing and inspecting services**
+### Viewing and inspecting services
 
 You can use the `docker service ls` command to see a list of all services running on a swarm.
 
-```
+```shell
 $ docker service ls
 ```
 
@@ -1002,7 +999,7 @@ The output shows a single running service as well as some basic information abou
 
 You can use the docker service ps command to see a list of service replicas and the state of each.
 
-```
+```shell
 $ docker service ps web-fe
 ```
 
@@ -1010,7 +1007,7 @@ The format of the command is docker service ps <service-name or service-id>. The
 
 For detailed information about a service, use the docker service inspect command.
 
-```
+```shell
 $ docker service inspect --pretty web-fe
 ```
 
@@ -1018,7 +1015,7 @@ The example above uses the --pretty ﬂag to limit the output to the most intere
 
 We’ll come back to some of these outputs later.
 
-**Replicated vs global services**
+### Replicated vs global services
 
 The default replication mode of a service is replicated. This deploys a desired number of replicas and distributes them as evenly as possible across the cluster.
 
@@ -1026,52 +1023,52 @@ The other mode is global, which runs a single replica on every node in the swarm
 
 To deploy a *global service* you need to pass the --mode global ﬂag to the docker service create command.
 
-**Scaling a service**
+### Scaling a service
 
 Another powerful feature of *services* is the ability to easily scale them up and down.
 
 Let’s assume business is booming and we’re seeing double the amount of traﬃc Hitting the web front-end. Fortunately, scaling the **web-fe** service is as simple as running the `docker service scale` command.
 
-```
+```shell
 $ docker service scale web-fe=10
 ```
 
 This command will scale the number of service replicas from 5 to 10. In the background it’s updating the service’s *desired state* from 5 to 10. Run another `docker service ls` command to verify the operation was successful.
 
-```
+```shell
 $ docker service ls
 ```
 
 Running a `docker service ps` command will show that the service replicas are balanced across all nodes in the swarm evenly.
 
-```
+```shell
 $ docker service ps web-fe
 ```
 
-Behind the scenes, swarm runs a scheduling algorithm called “spread” that aempts to balance replicas as evenly as possible across the nodes in the swarm. At the time of writing, this amounts to running an equal number of replicas on each node without taking into consideration things like CPU load etc.
+Behind the scenes, swarm runs a scheduling algorithm called “spread” that attempts to balance replicas as evenly as possible across the nodes in the swarm. At the time of writing, this amounts to running an equal number of replicas on each node without taking into consideration things like CPU load etc.
 
 Run another `docker service scale` command to bring the number back down from 10 to 5.
 
-```
+```shell
 $ docker service scale web-fe=5
 ```
 
 Now that you know how to scale a service, let’s see how to remove one.
 
-**Removing a service**
+### Removing a service
 
 Removing a service is simple — may be too simple.
 
 The following `docker service rm` command will delete the service deployed earlier.
 
-```
+```shell
 $ docker service rm web-fe
 web-fe
 ```
 
 Conﬁrm it’s gone with the `docker service ls` command.
 
-```
+```shell
 $ docker service ls
 ```
 
@@ -1079,15 +1076,15 @@ Be careful using the `docker service rm` command as it deletes all service repli
 
 Now that the service is deleted from the system, let’s look at how to push rolling updates to one.
 
-**Rolling updates**
+### Rolling updates
 
 Pushing updates to deployed applications is a fact of life. And for the longest time it was really painful. I’ve lost more than enough weekends to major application updates, and I’ve no intention of doing it again.
 
-Well… thanks to Docker *services*, pushing updates to well-designed microservices apps is easy.
+Thanks to Docker *services*, pushing updates to well-designed microservices apps is easy.
 
 To see this, we’re going to deploy a new service. But before we do that, we’re going to create a new overlay network for the service. This isn’t necessary, but I want you to see how it is done and how to attach the service to it.
 
-```
+```shell
 $ docker network create -d overlay uber-net
 43wfp6pzea470et4d57udn9ws
 ```
@@ -1100,7 +1097,7 @@ Figure shows four swarm nodes on two underlay networks connected by a layer 3 ro
 
 Run a docker network ls to verify that the network created properly and is visible on the Docker host.
 
-```
+```shell
 $ docker network ls
 ```
 
@@ -1108,7 +1105,7 @@ The uber-net network was successfully created with the swarm scope and is *curre
 
 Let’s create a new service and attach it to the network.
 
-```
+```shell
 $ docker service create --name uber-svc \
     --network uber-net \
     -p 80:80 --replicas 12 \
@@ -1121,15 +1118,15 @@ The ﬁrst thing we did was name the service and then use the --network ﬂag to
 
 Run a docker service ls and a docker service ps command to verify the state of the new service.
 
-```
+```shell
 $ docker service ls
 ```
 
-Passing the service the -p 80:80 ﬂag will ensure that a **swarm-wide** mapping is created that maps all traﬃc, coming in to any node in the swarm on port 80, through to port 80 inside of any service replica.
+Passing the service -p 80:80 ﬂag will ensure that a **swarm-wide** mapping is created that maps all traﬃc, coming in to any node in the swarm on port 80, through to port 80 inside of any service replica.
 
 This mode of publishing a port on every node in the swarm — even nodes not running service replicas — is called *ingress mode* and is the default. The alternative mode is *host mode* which only publishes the service on swarm nodes running replicas. Publishing a service in *host mode* requires the long-form syntax and looks like the following:
 
-```
+```shell
 $ docker service create --name uber-svc \
     --network uber-net \
     --publish published=80,target=80,mode=host \
@@ -1147,7 +1144,7 @@ Let’s now assume that this particular vote has come to an end and your company
 
 Let’s also assume that you’ve been tasked with pushing the updated image to the swarm in a staged manner —2 replicas at a time with a 20 second delay between each. You can use the following docker service update command to accomplish this.
 
-```
+```shell
 $ docker service update \
     --image nigelpoulton/tu-demo:v2 \
     --update-parallelism 2 \
@@ -1160,7 +1157,7 @@ Let’s review the command. docker service update lets us make updates to runnin
 
 If you run a docker service ps uber-svc while the update is in progress, some of the replicas will be at v2 while some will still be at v1. If you give the operation enough time to complete (4 minutes), all replicas will eventually reach the new desired state of using the v2 image.
 
-```
+```shell
 $ docker service ps uber-svc
 ```
 
@@ -1170,7 +1167,7 @@ Congratulations. You’ve just pushed a rolling update to a live containerized a
 
 If you run a docker inspect --pretty command against the service, you’ll see the update parallelism and update delay settings are now part of the service deﬁnition. This means future updates will automatically use these settings unless you override them as part of the docker service update command.
 
-```
+```shell
 $ docker service inspect --pretty uber-svc
 ```
 
@@ -1193,7 +1190,7 @@ json-file and journald are the easiest to conﬁgure, and both work with the doc
 
 If you’re using 3rd-party logging drivers you should view those logs using the logging platform’s native tools. The following snippet from a daemon.json conﬁguration ﬁle shows a Docker host conﬁgured to use syslog.
 
-```
+```yaml
 {
     "log-driver": "syslog"
 }
@@ -1205,13 +1202,13 @@ Service logs work on the premise that your application is running as PID 1 in it
 
 The following docker service logs command shows the logs for all replicas in the svc1 service that experienced a couple of failures starting a replica.
 
-```
+```shell
 $ docker service logs svc1
 ```
 
-The output is trimmed to ﬁt the page, but you can see that logs from all three service replicas are shown (the two that failed and the one that’s running). each line starts with the name of the replica, which includes the service name, replica number, replica ID, and name of host that it’s scheduled on. Following that is the log output.
+The output is trimmed to ﬁt the page, but you can see that logs from all three service replicas are shown (the two that failed and the one that’s running). Each line starts with the name of the replica, which includes the service name, replica number, replica ID, and name of host that it’s scheduled on. Following that is the log output.
 
-It’s hard to tell because it’s trimmed to ﬁt the book, but it looks like the ﬁrst two replicas failed because they were trying to connect to another service that was still starting (a sort of race condition when dependent services are starting).
+It looks like the ﬁrst two replicas failed because they were trying to connect to another service that was still starting (a sort of race condition when dependent services are starting).
 
 You can follow the logs (--follow), tail them (--tail), and get extra details (--details).
 
@@ -1219,13 +1216,13 @@ You can follow the logs (--follow), tail them (--tail), and get extra details (-
 
 Backing up a swarm will backup the control plane objects required to recover the swarm in the event of a catastrophic failure of corruption. Recovering a swarm from a backup is an extremely rare scenario. However, business critical environments should always be prepared for worst-case scenarios.
 
-You might be asking why backups are necessary if the control plane is already replicated and highly-available (HA). To answer that question, consider the scenario where a malicious actor deletes all of the Secrets on a swarm. HA cannot help in this scenario as the Secrets will be deleted from the cluster store that is automatically replicated to all manager nodes. In this scenario the highly-available replicated cluster store works against you — quickly propagating the delete operation. In this scenario you can either recreate the deleted objects from copies kept in a source code repo, or you can aempt to recover your swarm from a recent backup.
+You might be asking why backups are necessary if the control plane is already replicated and highly-available (HA). To answer that question, consider the scenario where a malicious actor deletes all of the Secrets on a swarm. HA cannot help in this scenario as the Secrets will be deleted from the cluster store that is automatically replicated to all manager nodes. In this scenario the highly-available replicated cluster store works against you — quickly propagating the delete operation. In this scenario you can either recreate the deleted objects from copies kept in a source code repo, or you can attempt to recover your swarm from a recent backup.
 
 Managing your swarm and applications declaratively is a great way to prevent the need to recover from a backup. For example, storing conﬁguration objects outside of the swarm in a source code repository will enable you to redeploy things like networks, services, secrets and other objects. However, managing your environment declaratively and strictly using source control repos requires discipline.
 
 Anyway, let’s see how to **backup a swarm**.
 
-Swarm conﬁguration and state is stored in /var/lib/docker/swarm on every manager node. The conﬁguration includes; Raft log keys, overlay networks, Secrets, Conﬁgs, Services, and more. A swarm backup is a copy of all the ﬁles in this directory.
+> Swarm conﬁguration and state is stored in **/var/lib/docker/swarm** on every manager node. The conﬁguration includes; Raft log keys, overlay networks, Secrets, Conﬁgs, Services, and more. A swarm backup is a copy of all the ﬁles in this directory.
 
 As the contents of this directory are replicated to all managers, you can, and should, perform backups from multiple managers. However, as you have to stop the Docker daemon on the node you are backing up, it’s a good idea to perform the backup from non-leader managers. This is because stopping Docker on the leader will initiate a leader election. You should also perform the backup at a quiet time for the business, as stopping a manager can increase the risk of the swarm losing quorum if another manager fails during the backup.
 
@@ -1234,46 +1231,52 @@ The procedure we’re about to follow is designed for demonstration purposes and
 > **Warning**: The following operation carries risks. You should also ensure you perform test backup and restore operations regularly and test the outcomes.
 
 The following commands will create the following two objects so you can prove the restore operation:
+
 - An overlay network called “Unimatrix-01”
 - A Secret called “missing drones” containing the text “Seven of Nine”
 
-```
+```shell
 $ docker network create -d overlay Unimatrix-01
+
 w9l904ff73e7stly0gnztsud7
 ```
 
-```
+```shell
 $ printf "Seven of Nine" | docker secret create missing\_drones -
+
 i8oj3b2lid27t5202uycw37lg
 ```
 
 Let’s perform the swarm backup.
+
 1. Stop Docker on a non-leader swarm manager.
     If you have any containers or service tasks running on the node, this action may stop them.
 
-```
+```shell
 $ service docker stop
 ```
 
 2. Backup the Swarm conﬁg.
+
     This example uses the Linux tar utility to perform the ﬁle copy that will be the backup. Feel free to use a diﬀerent tool.
 
-```
+```shell
 $ tar -czvf swarm.bkp /var/lib/docker/swarm/
 ```
 
 3. Verify the backup ﬁle exists.
 
-```
+```shell
 $ ls -l
 ```
 
-In the real world you should store and rotate this backup in accordance with any corporate backup policies. 
+In the real world you should store and rotate this backup in accordance with any corporate backup policies.
+
 At this point, the swarm is backed up and you can restart Docker on the node.
 
 4. Restart Docker.
 
-```
+```shell
 $ service docker restart
 ```
 
@@ -1284,21 +1287,26 @@ Now that you have a backup, let’s perform a test restore. The steps in this pr
 We’ll use the swarm.bkp ﬁle from earlier to restore the swarm. **All swarm nodes must have their Docker daemon stopped and the contents of their /var/lib/docker/swarm directories deleted.**
 
 The following must also be true for a recovery operation to work:
-    1. You can only restore to a node running the same version of Docker the backup was performed on
-    2. You can only restore to a node with the same IP address as the node the backup was performed on
 
-Perform the following tasks from the swarm manager node that you wish to recover. Remember that Docker must be stopped and the contents of /var/lib/docker/swarm must be deleted.
+    1. You can only restore to a node running the same version of Docker the backup was performed on.
+
+    2. You can only restore to a node with the same IP address as the node the backup was performed on.
+
+Perform the following tasks from the swarm manager node that you wish to recover. 
+
+> Remember that Docker must be stopped and the contents of **/var/lib/docker/swarm** must be deleted.
+
 1. Restore the Swarm conﬁguration from backup.
 
     In this example, we’ll restore from a zipped tar ﬁle called swarm.bkp. Restoring to the root directory is required with this command as it will include the full path to the original ﬁles as part of the extract operation. This may be diﬀerent in your environment.
     
-    ```
+    ```shell
     $ tar -zxvf swarm.bkp -C /
     ```
 
 2. Start Docker. The method for starting Docker can vary between environments.
 
-    ```
+    ```shell
     $ service docker start
     ```
 
@@ -1306,21 +1314,22 @@ Perform the following tasks from the swarm manager node that you wish to recover
 
     Remember, you are not recovering a manager and adding it back to a working cluster. This operation is to recover a failed swarm that has no surviving managers. The --force-new-cluster ﬂag tells Docker to create a new cluster using the conﬁguration stored in /var/lib/docker/swarm/ that you recovered in step 1.
 
-    ```
+    ```shell
     $ docker swarm init --force-new-cluster
+
     Swarm initialized: current node (jhsg...3l9h) is now a manager.
     ```
 
 4. Check that the network and service were recovered as part of the operation.
-    ```
+
+    ```shell
     $ docker network ls
     ```
 
-    ```
+    ```shell
     $ docker secret ls
     ```
 
 5. Add new manager and worker nodes and take fresh backups.
 
 Remember, test this procedure regularly and thoroughly. You do not want it to fail when you need it most!
-
