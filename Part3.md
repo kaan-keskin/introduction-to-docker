@@ -18,7 +18,13 @@ Available at: https://github.com/kaan-keskin/introduction-to-docker
 **Please visit this page and buy kindle/digital version of the book:**
 **https://www.amazon.com/Docker-Deep-Dive-Nigel-Poulton-ebook/dp/B01LXWQUFF/**
 
-## 11: Docker Networking
+**Content**
+
+> - Docker Networking
+> - 
+> - 
+
+## Docker Networking
 
 It’s always the network!
 
@@ -30,9 +36,9 @@ In this chapter, we’ll look at the fundamentals of Docker networking. Things l
 
 Docker runs applications inside of containers, and applications need to communicate over lots of diﬀerent networks. This means Docker needs strong networking capabilities.
 
-Fortunately, Docker has solutions for container-to-container networks, as well as connecting to existing networks and VLANs. The laer is important for containerized apps that interact with functions and services on external systems such as VM’s and physical servers.
+Fortunately, Docker has solutions for container-to-container networks, as well as connecting to existing networks and VLANs. The later is important for containerized apps that interact with functions and services on external systems such as VM’s and physical servers.
 
-Docker networking is based on an open-source pluggable architecture called the Container Network Model (CNM). libnetwork is Docker’s real-world implementation of the CNM, and it provides all of Docker’s core networking capabilities. Drivers plug in to libnetwork to provide speciﬁc network topologies.
+Docker networking is based on an open-source pluggable architecture called the Container Network Model (CNM). **libnetwork is Docker’s real-world implementation of the CNM, and it provides all of Docker’s core networking capabilities.** Drivers plug in to libnetwork to provide speciﬁc network topologies.
 
 To create a smooth out-of-the-box experience, Docker ships with a set of native drivers that deal with the most common networking requirements. These include single-host bridge networks, multi-host overlays, and options for plugging into existing VLANs. Ecosystem partners can extend things further by providing their own drivers.
 
@@ -51,10 +57,7 @@ Drivers extend the model by implementing speciﬁc network topologies such as VX
 
 <img src=".\images\DockerNetwork.png" style="width:75%; height: 75%;">
 
-Let’s look a bit closer at each.
-
-
-**The Container Network Model (CNM)**
+#### The Container Network Model (CNM)
 
 Everything starts with a design.
 
@@ -99,11 +102,11 @@ If libnetwork implements the control plane and management plane functions, then 
 
 <img src=".\images\DockerNetwork5.png" style="width:75%; height: 75%;">
 
-Docker ships with several built-in drivers, known as native drivers or *local drivers*. On Linux they include; bridge, overlay, and macvlan. On Windows they include; nat, overlay, transparent, and l2bridge. We’ll see how to use some of them later in the chapter.
+Docker ships with several built-in drivers, known as native drivers or *local drivers*. On Linux they include; bridge, overlay, and macvlan. On Windows they include; nat, overlay, transparent, and l2bridge.
 
 3rd-parties can also write Docker network drivers known as *remote drivers* or plugins. Weave Net is a popular example and can be downloaded from Docker Hub.
 
-each driver is in charge of the actual creation and management of all resources on the networks it is responsible for. For example, an overlay network called “prod-fe-cuda” will be owned and managed by the overlay driver. This means the overlay driver will be invoked for the creation, management, and deletion of all resources on that network.
+Each driver is in charge of the actual creation and management of all resources on the networks it is responsible for. For example, an overlay network called “prod-fe-cuda” will be owned and managed by the overlay driver. This means the overlay driver will be invoked for the creation, management, and deletion of all resources on that network.
 
 In order to meet the demands of complex highly-ﬂuid environments, libnetwork allows multiple network drivers to be active at the same time. This means your Docker environment can sport a wide range of heterogeneous networks.
 
@@ -124,25 +127,26 @@ Figure shows two Docker hosts with identical local bridge networks called “myn
 Every Docker host gets a default single-host bridge network. On Linux it’s called “bridge”, and on Windows it’s called “nat” (yes, those are the same names as the drivers used to create them). By default, this is the network that all new containers will be connected to unless you override it on the command line with the --network ﬂag.
 
 The following listing shows the output of a docker network ls command on newly installed Linux and Windows Docker hosts. The output is trimmed so that it only shows the default network on each host. Notice how the name of the network is the same as the driver that was used to create it — this is a coincidence and not a requirement.
-```
+
+```shell
 $ docker network ls
 ```
 
 The docker network inspect command is a treasure trove of great information. I highly recommended reading through its output if you’re interested in low-level detail.
 
-```
+```shell
 docker network inspect bridge
 ```
 
-Docker networks built with the bridge driver on Linux hosts are based on the bale-hardened *linux bridge* technology that has existed in the Linux kernel for nearly 20 years. This means they’re high performance and extremely stable. It also means you can inspect them using standard Linux utilities. For example.
+Docker networks built with the bridge driver on Linux hosts are based on the battle-hardened *linux bridge* technology that has existed in the Linux kernel for nearly 20 years. This means they’re high performance and extremely stable. It also means you can inspect them using standard Linux utilities. For example.
 
-```
+```shell
 $ ip link show docker0
 ```
 
 The default “bridge” network, on all Linux-based Docker hosts, maps to an underlying *Linux bridge* in the kernel called “**Docker0**”. We can see this from the output of docker network inspect.
 
-```
+```shell
 $ docker network inspect bridge | grep bridge.name
 ```
 
@@ -156,7 +160,7 @@ Figure extends the diagram by adding containers at the top that plug into the �
 
 Let’s use the docker network create command to create a new single-host bridge network called “localnet”.
 
-```
+```shell
 $ docker network create -d bridge localnet
 ```
 
@@ -164,7 +168,7 @@ The new network is created and will appear in the output of any future docker ne
 
 Let’s use the Linux brctl tool to look at the Linux bridges currently on the system. You may have to manually install the brctl binary using apt-get install bridge-utils, or the equivalent for your Linux distro.
 
-```
+```shell
 $ brctl show
 ```
 
@@ -174,9 +178,11 @@ At this point, the bridge conﬁguration on the host looks like Figure.
 
 <img src=".\images\SingleHostBridgeNetwork4.png" style="width:75%; height: 75%;">
 
-Let’s create a new container and attach it to the new localnet bridge network. If you’re following along on Windows, you should substitute “alpine sleep 1d” with “mcr.microsoft.com/powershell:nanoserver pwsh.exe -Command Start-Sleep 86400”.
+Let’s create a new container and attach it to the new localnet bridge network. 
 
-```
+If you’re following along on Windows, you should substitute “alpine sleep 1d” with “mcr.microsoft.com/powershell:nanoserver pwsh.exe -Command Start-Sleep 86400”.
+
+```shell
 $ docker container run -d --name c1 \
     --network localnet \
     alpine sleep 1d
@@ -184,8 +190,9 @@ $ docker container run -d --name c1 \
 
 This container will now be on the localnet network. You can conﬁrm this with a docker network inspect.
 
-```
+```shell
 $ docker network inspect localnet --format '{{json .Containers}}'
+
 {
     "4edcbd...842c3aa": {
         "Name": "c1",
@@ -194,83 +201,87 @@ $ docker network inspect localnet --format '{{json .Containers}}'
         "IPv4Address": "172.20.0.2/16",
         "IPv6Address": ""
     }
-},
+}
 ```
 
 The output shows that the new “c1” container is on the localnet bridge/nat network.
 
 It you run the Linux brctl show command again, you’ll see c1’s interface attached to the br-20c2e8ae4bbb bridge.
 
-```
+```shell
 $ brctl show
 ```
 
-This is shown in Figure.
+This is shown in the figure below.
 
 <img src=".\images\SingleHostBridgeNetwork5.png" style="width:75%; height: 75%;">
 
-If we add another new container to the same network, it should be able to ping the “c1” container by name. This is because all new containers are automatically registered with the embedded Docker DNS service, enabling them to resolve the names of all other containers on the same network.
+If we add another new container to the same network, it should be able to ping the “c1” container by name. This is because **all new containers are automatically registered with the embedded Docker DNS service, enabling them to resolve the names of all other containers on the same network**.
 
-> **Beware:** The default bridge network on Linux does not support name resolution via the Docker DNS service. All other *user-deﬁned* bridge networks do. The following demo will work because the container is on the user-deﬁned localnet network.
+> **CRITICAL INFORMATION:** 
+
+> **The default bridge network on Linux does not support name resolution via the Docker DNS service. All other *user-deﬁned* bridge networks do.** The following demo will work because the container is on the user-deﬁned localnet network.
 
 Let’s test it.
 
-    1. Create a new interactive container called “c2” and put it on the same localnet network as “c1”.
+Create a new interactive container called “c2” and put it on the same localnet network as “c1”.
 
-    ```
-    $ docker container run -it --name c2 \
-        --network localnet \
-        alpine sh
-    ```
-    Your terminal will switch into the “c2” container.
+```shell
+$ docker container run -it --name c2 \
+    --network localnet \
+    alpine sh
+```
 
-    2. From within the “c2” container, ping the “c1” container by name.
+Your terminal will switch into the “c2” container.
 
-    ```
-    \> ping c1
-    ```
+From within the “c2” container, ping the “c1” container by name.
 
-    It works! This is because the c2 container is running a local DNS resolver that forwards requests to an internal Docker DNS server. This DNS server maintains mappings for all containers started with the `--name` or `--net-alias` ﬂag.
+```shell
+$ ping c1
+```
+
+It works! This is because the c2 container is running a local DNS resolver that forwards requests to an internal Docker DNS server. This DNS server maintains mappings for all containers started with the `--name` or `--net-alias` ﬂag.
 
 Try running some network-related commands while you’re still logged on to the container. It’s a great way of learning more about how Docker container networking works. The following snippet shows the ipconfig command ran from inside the “c2” Windows container previously created. You can Ctrl+P+Q out of the container and run another docker network inspect localnet command to match the IP addresses.
 
-```
+```powershell
 PS C:\> ipconfig
 ```
 
 So far, we’ve said that containers on bridge networks can only communicate with other containers on the same network. However, you can get around this using *port mappings*.
 
-Port mappings let you map a container to a port on the Docker host. Any traﬃc Hitting the Docker host on the conﬁgured port will be directed to the container. The high-level ﬂow is shown in Figure.
+Port mappings let you map a container to a port on the Docker host. Any traﬃc Hitting the Docker host on the conﬁgured port will be directed to the container. The high-level ﬂow is shown in the figure below.
 
 <img src=".\images\SingleHostBridgeNetwork6.png" style="width:75%; height: 75%;">
 
-In the diagram, the application running in the container is operating on port 80. This is mapped to port 5000 on the host’s 10.0.0.15 interface. The end result is all traﬃc Hitting the host on 10.0.0.15:5000 being redirected to the container on port 80.
+In the diagram, the application running in the container is operating on port 80. This is mapped to port 5000 on the host’s 10.0.0.15 interface. The end result is all traﬃc hitting the host on 10.0.0.15:5000 being redirected to the container on port 80.
 
 Let’s walk through an example of mapping port 80 on a container running a web server, to port 5000 on the Docker host. The example will use NGINX on Linux. If you’re following along on Windows, you’ll need to substitute nginx with a Windows-based web server image such as mcr.microsoft.com/windows/servercore/iis:nanoserver.
 
-    1. Run a new web server container and map port 80 on the container to port 5000 on the Docker host.
+Run a new web server container and map port 80 on the container to port 5000 on the Docker host.
 
-    ```
-    $ docker container run -d --name web \
-        --network localnet \
-        --publish 5000:80 \
-        nginx
-    ```
+```shell
+$ docker container run -d --name web \
+    --network localnet \
+    --publish 5000:80 \
+    nginx
+```
 
-    2. Verify the port mapping.
+Verify the port mapping.
 
-    ```
-    $ docker port web
-    80/tcp -> 0.0.0.0:5000
-    ```
+```shell
+$ docker port web
 
-    This shows that port 80 in the container is mapped to port 5000 on all interfaces on the Docker host.
+80/tcp -> 0.0.0.0:5000
+```
 
-    3. Test the conﬁguration by pointing a web browser to port 5000 on the Docker host. To complete this step, you’ll need to know the IP or DNS name of your Docker host. If you’re using Docker Desktop on Mac or Windows, you’ll be able to use localhost:5000 or 127.0.0.1:5000.
+This shows that port 80 in the container is mapped to port 5000 on all interfaces on the Docker host.
+
+Test the conﬁguration by pointing a web browser to port 5000 on the Docker host. To complete this step, you’ll need to know the IP or DNS name of your Docker host. If you’re using Docker Desktop on Mac or Windows, you’ll be able to use localhost:5000 or 127.0.0.1:5000.
 
 <img src=".\images\SingleHostBridgeNetworkApp.png" style="width:75%; height: 75%;">
 
-    Any external system can now access the NGINX container running on the localnet bridge network via a port mapping to TCP port 5000 on the Docker host.
+Any external system can now access the NGINX container running on the localnet bridge network via a port mapping to TCP port 5000 on the Docker host.
 
 Mapping ports like this works, but it’s clunky and doesn’t scale. For example, only a single container can bind to any port on the host. This means no other containers on that host will be able to bind to port 5000. This is one of the reason’s that single-host bridge networks are only useful for local development and very small applications.
 
