@@ -285,23 +285,17 @@ Any external system can now access the NGINX container running on the localnet b
 
 Mapping ports like this works, but it’s clunky and doesn’t scale. For example, only a single container can bind to any port on the host. This means no other containers on that host will be able to bind to port 5000. This is one of the reason’s that single-host bridge networks are only useful for local development and very small applications.
 
-
-
 ### Multi-host overlay networks
-
-We’ve got an entire chapter dedicated to multi-host overlay networks. So we’ll keep this section short.
 
 Overlay networks are multi-host. They allow a single network to span multiple hosts so that containers on diﬀerent hosts can communicate directly. They’re ideal for container-to-container communication, including container-only applications, and they scale well.
 
 Docker provides a native driver for overlay networks. This makes creating them as simple as adding the --d overlay ﬂag to the docker network create command.
 
-
-
 ### Connecting to existing networks
 
 The ability to connect containerized apps to external systems and physical networks is vital. A common example is a partially containerized app — the containerized parts need a way to communicate with the non-containerized parts still running on existing physical networks and VLANs.
 
-The built-in MACVLAN driver (transparent on Windows) was created with this in mind. It makes containers ﬁrst-class citizens on the existing physical networks by giving each one its own MAC address and IP addresses. We show this in Figure.
+The built-in MACVLAN driver (transparent on Windows) was created with this in mind. It makes containers ﬁrst-class citizens on the existing physical networks by giving each one its own MAC address and IP addresses.
 
 <img src=".\images\ConnectExistNetwork.png" style="width:75%; height: 75%;">
 
