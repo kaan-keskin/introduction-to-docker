@@ -21,7 +21,7 @@ Available at: https://github.com/kaan-keskin/introduction-to-docker
 **Content**
 
 > - Docker Networking
-> - 
+> - Docker Overlay Networking
 > - 
 
 ## Docker Networking
@@ -311,9 +311,11 @@ Assume we have an existing physical network with two VLANS:
 
 Next, we add a Docker host and connect it to the network.
 
-<img src=".\images\ConnectExistNetwork3.png" style="width:75%; height: 75%;">
+<img src=".\images\ConnectExistNetwork3.png" style="width:75%; height: 75%;"/>
 
-We then have a requirement for a container running on that host to be plumbed into VLAN 100. To do this, we create a new Docker network with the macvlan driver. However, the macvlan driver needs us to tell it a few things about the network we’re going to associate it with. Things like:
+We then have a requirement for a container running on that host to be plumbed into VLAN 100. To do this, we create a new Docker network with the macvlan driver. However, the macvlan driver needs us to tell it a few things about the network we’re going to associate it with. 
+
+Things like:
 - Subnet info
 - Gateway
 - Range of IP’s it can assign to containers
@@ -321,7 +323,7 @@ We then have a requirement for a container running on that host to be plumbed in
 
 The following command will create a new MACVLAN network called “macvlan100” that will connect containers to VLAN 100.
 
-```
+```shell
 $ docker network create -d macvlan \
     --subnet=10.0.0.0/24 \
     --ip-range=10.0.0.0/25 \
@@ -332,27 +334,27 @@ $ docker network create -d macvlan \
 
 This will create the “macvlan100” network and the eth0.100 sub-interface. The conﬁg now looks like this.
 
-<img src=".\images\ConnectExistNetwork4.png" style="width:75%; height: 75%;">
+<img src=".\images\ConnectExistNetwork4.png" style="width:75%; height: 75%;"/>
 
-MACVLAN uses standard Linux sub-interfaces, and you have to tag them with the ID of the VLAN they will connect to. In this example we’re connecting to VLAN 100, so we tag the sub-interface with .100 (etho.100).
+MACVLAN uses standard Linux sub-interfaces, and you have to tag them with the ID of the VLAN they will connect to. In this example we’re connecting to VLAN 100, so we tag the sub-interface with macvlan100 (etho.100).
 
 We also used the --ip-range ﬂag to tell the MACVLAN network which sub-set of IP addresses it can assign to containers. It’s vital that this range of addresses be reserved for Docker and not in use by other nodes or DHCP servers, as there is no management plane feature to check for overlapping IP ranges.
 
 The macvlan100 network is ready for containers, so let’s deploy one with the following command.
 
-```
+```shell
 $ docker container run -d --name mactainer1 \
     --network macvlan100 \
     alpine sleep 1d
 ```
 
-The conﬁg now looks like Figure. But remember, the underlying network (VLAN 100) does not see any of the MACVLAN magic, it only sees the container with its MAC and IP addresses. And with that in mind, the “mactainer1” container will be able to ping and communicate with any other systems on VLAN 100. Pretty sweet!
+The underlying network (VLAN 100) does not see any of the MACVLAN magic, it only sees the container with its MAC and IP addresses. And with that in mind, the “mactainer1” container will be able to ping and communicate with any other systems on VLAN 100.
 
 > **Note:** If you can’t get this to work, it might be because the host NIC is not in promiscuous mode. Remember that public cloud platforms don’t usually allow promiscuous mode.
 
 <img src=".\images\ConnectExistNetwork5.png" style="width:75%; height: 75%;">
 
-At this point, we’ve got a MACVLAN network and used it to connect a new container to an existing VLAN. However, it doesn’t stop there. The Docker MACVLAN driver is built on top of the tried-and-tested Linux kernel driver with the same name. As such, it supports VLAN trunking. This means we can create multiple MACVLAN networks and connect containers on the same Docker host to them as shown in Figure.
+At this point, we’ve got a MACVLAN network and used it to connect a new container to an existing VLAN. However, it doesn’t stop there. The Docker MACVLAN driver is built on top of the tried-and-tested Linux kernel driver with the same name. As such, it supports VLAN trunking. This means we can create multiple MACVLAN networks and connect containers on the same Docker host to them.
 
 <img src=".\images\ConnectExistNetwork6.png" style="width:75%; height: 75%;">
 
@@ -362,26 +364,28 @@ That Pretty much covers MACVLAN. Windows oﬀers a similar solution with the tra
 
 A quick note on troubleshooting connectivity issues before moving on to Service Discovery. If you think you’re experiencing connectivity issues between containers, it’s worth checking the Docker daemon logs as well as container logs.
 
-On Windows systems, the daemon logs are stored under ∼AppData\Local\Docker, and you can view them in the Windows Event Viewer. On Linux, it depends what init system you’re using. If you’re running a systemd, the logs will go to journald and you can view them with the journalctl -u docker.service command. If you’re not running systemd you should look under the following locations:
-- Ubuntu systems running upstart: /var/log/upstart/docker.log
-- RHEL-based systems: /var/log/messages
-- Debian: /var/log/daemon.log
+On Windows systems, the daemon logs are stored under **'∼AppData\Local\Docker'**, and you can view them in the Windows Event Viewer. 
+
+On Linux, it depends what init system you’re using. If you’re running a systemd, the logs will go to **journald** and you can view them with the **'journalctl -u docker.service'** command. 
+
+If you’re not running systemd you should look under the following locations:
+- Ubuntu systems running upstart: **'/var/log/upstart/docker.log'**
+- RHEL-based systems: **'/var/log/messages'**
+- Debian: **'/var/log/daemon.log'**
 
 You can also tell Docker how verbose you want daemon logging to be. To do this, edit the daemon conﬁg ﬁle (`daemon.json`) so that “debug” is set to “true” and “log-level” is set to one of the following:
 - `debug` The most verbose option
 - `info` The default value and second-most verbose option
-- `warn` ird most verbose option
+- `warn` Third most verbose option
 - `error` Fourth most verbose option
 - `fatal` Least verbose option
 
 The following snippet from a daemon.json enables debugging and sets the level to debug. It will work on all Docker platforms.
 
-```
+```yaml
 {
-    <Snip>
-    "debug":true,
-    "log-level":"debug",
-    <Snip>
+    "debug": true,
+    "log-level": "debug",
 }
 ```
 
@@ -391,57 +395,56 @@ That was the daemon logs. What about container logs?
 
 Logs from standalone containers can be viewed with the docker container logs command, and Swarm service logs can be viewed with the docker service logs command. However, Docker supports lots of logging drivers, and they don’t all work with the docker logs command.
 
-As well as a driver and conﬁguration for daemon logs, every Docker host has a default logging driver and conﬁguration for containers. Some of the drivers include:
+As well as a driver and conﬁguration for daemon logs, every Docker host has a default logging driver and conﬁguration for containers. 
 
+Some of the drivers include:
 - json-file (default)
 - journald (only works on Linux hosts running systemd)
 - syslog
 - splunk
 - gelf
 
-json-file and journald are probably the easiest to conﬁgure, and they both work with the docker logs and docker service logs commands. The format of the commands is docker logs <container-name> and docker service logs <service-name>.
+json-file and journald are probably the easiest to conﬁgure, and they both work with the docker logs and docker service logs commands. The format of the commands is **'docker logs container-name'** and **'docker service logs service-name'**.
 
 If you’re using other logging drivers you can view logs using the 3-rd party platform’s native tools.
 
 The following snippet from a daemon.json shows a Docker host conﬁgured to use syslog.
 
-```
+```yaml
 {
-    "log-driver": "syslog"
+    "log-driver": "syslog",
 }
 ```
 
-You can conﬁgure an individual container, or service, to start with a particular logging driver with the --log-driver and --log-opts ﬂags. These will override anything set in daemon.json.
+You can conﬁgure an individual container, or service, to start with a particular logging driver with the **--log-driver** and **--log-opts** ﬂags. These will override anything set in daemon.json.
 
-Container logs work on the premise that your application is running as PID 1 inside the container and sending logs to STDOUT, and errors to STDERR. The logging driver then forwards these “logs” to the locations conﬁgured via the logging driver.
+**Container logs work on the premise that your application is running as PID 1 inside the container and sending logs to STDOUT, and errors to STDERR. The logging driver then forwards these “logs” to the locations conﬁgured via the logging driver.**
 
 If your application logs to a ﬁle, it’s possible to use a symlink to redirect log-ﬁle writes to STDOUT and STDERR.
 
 The following is an example of running the docker logs command against a container called “vantage-db” conﬁgured to use the json-file logging driver.
 
-```
+```shell>
 $ docker logs vantage-db
 ```
 
 There’s a good chance you’ll ﬁnd network connectivity errors reported in the daemon logs or container logs.
 
-
-
 ### Service discovery
 
 As well as core networking, libnetwork also provides some important network services.
 
-*Service discovery* allows all containers and Swarm services to locate each other by name. The only requirement is that they be on the same network.
+**Service discovery** allows all containers and Swarm services to locate each other by name. The only requirement is that they be on the same network.
 
 Under the hood, this leverages Docker’s embedded DNS server and the DNS resolver in each container. Figure shows container “c1” pinging container “c2” by name. The same principle applies to Swarm Services.
 
-<img src=".\images\ServiceDiscovery.png" style="width:75%; height: 75%;">
+<img src=".\images\ServiceDiscovery.png" style="width:75%; height: 75%;"/>
 
 Let’s step through the process.
 
-- **Step 1:** The ping c2 command invokes the local DNS resolver to resolve the name “c2” to an IP address. All Docker containers have a local DNS resolver.
+- **Step 1:** The ping c2 command invokes the local DNS resolver to resolve the name “c2” to an IP address. **All Docker containers have a local DNS resolver.**
 
-- **Step 2:** If the local resolver doesn’t have an IP address for “c2” in its local cache, it initiates a recursive query to the Docker DNS server. The local resolver is pre-conﬁgured to know how to reach the Docker DNS server.
+- **Step 2:** If the local resolver doesn’t have an IP address for “c2” in its local cache, it initiates a recursive query to the Docker DNS server. **The local resolver is pre-conﬁgured to know how to reach the Docker DNS server.**
 
 - **Step 3:** The Docker DNS server holds name-to-IP mappings for all containers created with the --name or --net-alias ﬂags. This means it knows the IP address of container “c2”.
 
@@ -449,23 +452,26 @@ Let’s step through the process.
 
 - **Step 5:** The ping command issues the ICMP echo request packets to the IP address of “c2”. Every Swarm service and standalone container started with the --name ﬂag will register its name and IP with the Docker DNS service. This means all containers and service replicas can use the Docker DNS service to ﬁnd each other.
 
-However, service discovery is *network-scoped*. This means that name resolution only works for containers and Services on the same network. If two containers are on diﬀerent networks, they will not be able to resolve each other.
+However, **service discovery is *network-scoped*.** This means that name resolution only works for containers and Services on the same network. If two containers are on diﬀerent networks, they will not be able to resolve each other.
 
-One last point on service discovery and name resolution…
+One last point on service discovery and name resolution:
 
-It’s possible to conﬁgure Swarm services and standalone containers with customized DNS options. For example, the --dns ﬂag lets you specify a list of custom DNS servers to use in case the embedded Docker DNS server cannot resolve a query. This is common when querying names of services outside of Docker. You can also use the --dns-search ﬂag to add custom search domains for queries against unqualiﬁed names (i.e. when the query is not a fully qualiﬁed domain name).
+It’s possible to conﬁgure Swarm services and standalone containers with customized DNS options. 
 
-On Linux, these all work by adding entries to the /etc/resolv.conf ﬁle inside every container.
+For example, **the --dns ﬂag lets you specify a list of custom DNS servers to use in case the embedded Docker DNS server cannot resolve a query.** This is common when querying names of services outside of Docker. 
+
+**You can also use the --dns-search ﬂag to add custom search domains for queries against unqualiﬁed names (i.e. when the query is not a fully qualiﬁed domain name).**
+
+**On Linux, these all work by adding entries to the '/etc/resolv.conf' ﬁle inside every container.**
 
 The following example will start a new standalone container and add the infamous 8.8.8.8 Google DNS server, as well as nigelpoulton.com as search domain to append to unqualiﬁed queries.
 
-```
+```shell
 $ docker container run -it --name c1 \
     --dns=8.8.8.8 \
     --dns-search=nigelpoulton.com \
     alpine sh
 ```
-
 
 ### Ingress load balancing
 
@@ -473,21 +479,33 @@ Swarm supports two publishing modes that make services accessible outside of the
 - Ingress mode (default)
 - Host mode
 
-Services published via *ingress mode* can be accessed from any node in the Swarm — even nodes **not** running a service replica. Services published via *host mode* can only be accessed by Hitting nodes running service replicas. Figure shows the diﬀerence between the two modes.
+**Services published via *ingress mode* can be accessed from any node in the Swarm — even nodes **not** running a service replica.** 
+
+**Services published via *host mode* can only be accessed by Hitting nodes running service replicas.** 
+
+Figure below shows the diﬀerence between the two modes.
 
 <img src=".\images\IngressLoadBalance.png" style="width:75%; height: 75%;"> 
 
-Ingress mode is the default. This means any time you publish a service with -p or --publish it will default to *ingress mode*. To publish a service in *host mode* you need to use the long format of the --publish ﬂag **and** add mode=host. Let’s see an example using *host mode*.
+Ingress mode is the default. This means any time you publish a service with -p or --publish it will default to *ingress mode*. 
 
-```
+To publish a service in *host mode* you need to use the long format of the --publish ﬂag **and** add mode=host. 
+
+Let’s see an example using *host mode*.
+
+```shell
 $ docker service create -d --name svc1 \
     --publish published=5000,target=80,mode=host \
     nginx
 ```
 
-A few notes about the command. docker service create lets you publish a service using either a *long form* *syntax* or *short form syntax*. The short form looks like this: -p 5000:80 and we’ve seen it a few times already. However, you cannot publish a service in *host mode* using short form.
+A few notes about the command. docker service create lets you publish a service using either a *long form* *syntax* or *short form syntax*. 
 
-The long form looks like this: --publish published=5000,target=80,mode=host. It’s a comma-separate list with no whitespace after each comma. The options work as follows:
+The short form looks like this: -p 5000:80 and we’ve seen it a few times already. However, you cannot publish a service in *host mode* using short form.
+
+The long form looks like this: --publish published=5000,target=80,mode=host. It’s a comma-separate list with no whitespace after each comma. 
+
+The options work as follows:
 - published=5000 makes the service available externally via port 5000
 - target=80 makes sure that external requests to the published port get mapped back to port 80 on the service replicas
 - mode=host makes sure that external requests will only reach the service if they come in via nodes running a service replica.
@@ -506,19 +524,17 @@ Let’s quickly walk through the diagram.
 
 3. Logic is implemented on the cluster ensuring that any traﬃc Hitting the ingress network, via **any node**, on port 5000 will be routed to the “svc1” service on port 80.
 
-4. At this point, a single replica for the “svc1” service is deployed, and the cluster has a mapping rule that says “*all traﬃc Hitting the ingress network on port 5000 needs routing to a node running a replica for the* *“svc1” service*”.
+4. At this point, a single replica for the “svc1” service is deployed, and the cluster has a mapping rule that says “*all traﬃc hitting the ingress network on port 5000 needs routing to a node running a replica for the* *“svc1” service*”.
 
-5. The red line shows traﬃc Hitting node1 on port 5000 and being routed to the service replica running on node2 via the ingress network.
+5. The red line shows traﬃc hitting node1 on port 5000 and being routed to the service replica running on node2 via the ingress network.
 
 It’s vital to know that the incoming traﬃc could have hit any of the four Swarm nodes on port 5000 and we would get the same result. This is because the service is published *swarm-wide* via the ingress network.
 
-It’s also vital to know that if there were multiple replicas running, as shown in Figure, the traﬃc would be balanced across all replicas.
+It’s also vital to know that if there were multiple replicas running, as shown in the figure below, the traﬃc would be balanced across all replicas.
 
 <img src=".\images\IngressLoadBalance3.png" style="width:75%; height: 75%;">
 
-
-
-## 12: Docker overlay networking
+## Docker overlay networking
 
 Overlay networks are at the beating heart of many cloud-native microservices apps. In this chapter we’ll cover the fundamentals of native Docker overlay networking.
 
