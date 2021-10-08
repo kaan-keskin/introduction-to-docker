@@ -13,7 +13,7 @@ Available at: https://github.com/kaan-keskin/introduction-to-docker
 > - DevOps Lecture Notes - California Institute of Technology
 > - Wikipedia - www.wikipedia.com
 
-**LEGAL NOTICE: This document is created for educational purposes, and it can not be used for any commercial purposes. If you find this document useful in any means please support original authors for ethical reasons.** 
+**LEGAL NOTICE: This document is created for educational purposes, and it can not be used for any commercial purposes. If you find this document useful in any means please support the original authors for ethical reasons.** 
 
 **Please visit this page and buy kindle/digital version of the book:**
 **https://www.amazon.com/Docker-Deep-Dive-Nigel-Poulton-ebook/dp/B01LXWQUFF/**

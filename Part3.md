@@ -13,7 +13,7 @@ Available at: https://github.com/kaan-keskin/introduction-to-docker
 > - DevOps Lecture Notes - California Institute of Technology
 > - Wikipedia - www.wikipedia.com
 
-**LEGAL NOTICE: This document is created for educational purposes, and it can not be used for any commercial purposes. If you find this document useful in any means please support original authors for ethical reasons.** 
+**LEGAL NOTICE: This document is created for educational purposes, and it can not be used for any commercial purposes. If you find this document useful in any means please support the original authors for ethical reasons.** 
 
 **Please visit this page and buy kindle/digital version of the book:**
 **https://www.amazon.com/Docker-Deep-Dive-Nigel-Poulton-ebook/dp/B01LXWQUFF/**
@@ -22,7 +22,7 @@ Available at: https://github.com/kaan-keskin/introduction-to-docker
 
 > - Docker Networking
 > - Docker Overlay Networking
-> - 
+> - Volumes and Persistent Data
 
 ## Docker Networking
 
@@ -102,7 +102,17 @@ If libnetwork implements the control plane and management plane functions, then 
 
 <img src=".\images\DockerNetwork5.png" style="width:75%; height: 75%;">
 
-Docker ships with several built-in drivers, known as native drivers or *local drivers*. On Linux they include; bridge, overlay, and macvlan. On Windows they include; nat, overlay, transparent, and l2bridge.
+Docker ships with several built-in drivers, known as native drivers or *local drivers*. 
+
+**On Linux they include:**
+- bridge, 
+- host,
+- ipvlan,
+- macvlan,
+- null, 
+- overlay. 
+
+On Windows they include; nat, overlay, transparent, and l2bridge.
 
 3rd-parties can also write Docker network drivers known as *remote drivers* or plugins. Weave Net is a popular example and can be downloaded from Docker Hub.
 
@@ -366,7 +376,7 @@ A quick note on troubleshooting connectivity issues before moving on to Service 
 
 On Windows systems, the daemon logs are stored under **'∼AppData\Local\Docker'**, and you can view them in the Windows Event Viewer. 
 
-On Linux, it depends what init system you’re using. If you’re running a systemd, the logs will go to **journald** and you can view them with the **'journalctl -u docker.service'** command. 
+> On Linux, it depends what init system you’re using. If you’re running a systemd, the logs will go to **journald** and you can view them with the **'journalctl -u docker.service'** command. 
 
 If you’re not running systemd you should look under the following locations:
 - Ubuntu systems running upstart: **'/var/log/upstart/docker.log'**
@@ -393,16 +403,21 @@ Be sure to restart Docker after making changes to the ﬁle.
 
 That was the daemon logs. What about container logs?
 
-Logs from standalone containers can be viewed with the docker container logs command, and Swarm service logs can be viewed with the docker service logs command. However, Docker supports lots of logging drivers, and they don’t all work with the docker logs command.
+Logs from standalone containers can be viewed with the **'docker container logs'** command, and Swarm service logs can be viewed with the **'docker service logs'** command. However, Docker supports lots of logging drivers, and they don’t all work with the docker logs command.
 
 As well as a driver and conﬁguration for daemon logs, every Docker host has a default logging driver and conﬁguration for containers. 
 
 Some of the drivers include:
-- json-file (default)
-- journald (only works on Linux hosts running systemd)
+- **json-file** (default)
+- **journald** (only works on Linux hosts running systemd)
 - syslog
 - splunk
 - gelf
+- local
+- awslogs
+- fluentd
+- gcplogs
+- logentries
 
 json-file and journald are probably the easiest to conﬁgure, and they both work with the docker logs and docker service logs commands. The format of the commands is **'docker logs container-name'** and **'docker service logs service-name'**.
 
@@ -416,7 +431,7 @@ The following snippet from a daemon.json shows a Docker host conﬁgured to use 
 }
 ```
 
-You can conﬁgure an individual container, or service, to start with a particular logging driver with the **--log-driver** and **--log-opts** ﬂags. These will override anything set in daemon.json.
+**You can conﬁgure an individual container, or service, to start with a particular logging driver with the **--log-driver** and **--log-opts** ﬂags. These will override anything set in daemon.json.**
 
 **Container logs work on the premise that your application is running as PID 1 inside the container and sending logs to STDOUT, and errors to STDERR. The logging driver then forwards these “logs” to the locations conﬁgured via the logging driver.**
 
@@ -434,7 +449,7 @@ There’s a good chance you’ll ﬁnd network connectivity errors reported in t
 
 As well as core networking, libnetwork also provides some important network services.
 
-**Service discovery** allows all containers and Swarm services to locate each other by name. The only requirement is that they be on the same network.
+> **Service discovery** allows all containers and Swarm services to locate each other by name. The only requirement is that they be on the same network.
 
 Under the hood, this leverages Docker’s embedded DNS server and the DNS resolver in each container. Figure shows container “c1” pinging container “c2” by name. The same principle applies to Swarm Services.
 
@@ -512,7 +527,7 @@ The options work as follows:
 
 Ingress mode is what you’ll normally use.
 
-Behind the scenes, *ingress mode* uses a layer 4 routing mesh called the **Service Mesh** or the **Swarm Mode Service** **Mesh**. Figure shows the basic traﬃc ﬂow of an external request to a service exposed in ingress mode.
+> Behind the scenes, *ingress mode* uses a **layer 4 routing mesh** called the **Service Mesh** or the **Swarm Mode Service Mesh**. Figure shows the basic traﬃc ﬂow of an external request to a service exposed in ingress mode.
 
 <img src=".\images\IngressLoadBalance2.png" style="width:75%; height: 75%;">
 
@@ -520,7 +535,7 @@ Let’s quickly walk through the diagram.
 
 1. The command at the top deploys a new Swarm service called “svc1”. It’s attaching the service to the overnet network and publishing it on port 5000.
 
-2. Publishing a Swarm service like this (--publish published=5000,target=80) will publish it on port 5000 on the ingress network. As all nodes in a Swarm are attached to the ingress network, this means the port is published *swarm-wide*.
+2. **Publishing a Swarm service like this (--publish published=5000,target=80) will publish it on port 5000 on the ingress network. As all nodes in a Swarm are attached to the ingress network, this means the port is published *swarm-wide*.**
 
 3. Logic is implemented on the cluster ensuring that any traﬃc Hitting the ingress network, via **any node**, on port 5000 will be routed to the “svc1” service on port 80.
 
@@ -546,11 +561,11 @@ Docker oﬀers native overlay networking that is simple to conﬁgure and secure
 
 Behind the scenes, it’s built on top of libnetwork and drivers. libnetwork is the canonical implementation of the Container Network Model (CNM) and drivers are pluggable components that implement diﬀerent networking technologies and topologies. Docker oﬀers native drivers, including the overlay driver.
 
-In March 2015, Docker, Inc. acquired a container networking startup called *socket Plane*. Two of the reasons behind the acquisition were to bring *real networking* to Docker, and to make container networking simple enough that even developers could do it.
+In March 2015, Docker, Inc. acquired a container networking startup called *Socket Plane*. Two of the reasons behind the acquisition were to bring *real networking* to Docker, and to make container networking simple enough that even developers could do it.
 
 They over-achieved on both.
 
-However, hiding behind the simple networking commands are a lot of moving parts. The kind of stuﬀ you need to understand before doing production deployments and Attempting to troubleshoot issues.
+However, hiding behind the simple networking commands are a lot of moving parts. The kind of stuﬀ you need to understand before doing production deployments and attempting to troubleshoot issues.
 
 ### Build and test a Docker overlay network in Swarm mode*
 
@@ -562,7 +577,7 @@ See Figure, and note the diﬀerent networks that each node is on.
 
 You can follow along with either Linux or Windows Docker hosts. Linux should have at least a 4.4 Linux kernel (newer is always better) and Windows should be Windows Server 2016 or later with the latest hotﬁxes installed. You can also follow along on your Mac or Windows PC with Docker Desktop. However, you won’t see the full beneﬁts as they only support a single Docker host.
 
-**Build a Swarm**
+### Build a Swarm
 
 The ﬁrst thing to do is conﬁgure the two hosts into a two-node swarm. This is because swarm mode is a pre-requisite for overlay networks.
 
@@ -572,20 +587,21 @@ If you are following along in your own lab, you’ll need to swap the IP address
 
 Run the following command on **node1**.
 
-```
+```shell
 $ docker swarm init \
     --advertise-addr=172.31.1.5 \
     --listen-addr=172.31.1.5:2377
+
 Swarm initialized: current node (1ex3...o3px) is now a manager.
 ```
 
 Run the next command on **node2**. You will need to ensure the following ports are enabled on any ﬁrewalls:
 
-- 2377/tcp for management plane comms
-- 7946/tcp and 7946/udp for control plane comms (SWIM-based gossip)
-- 4789/udp for the VXLAN data plane
+- **2377/tcp** for management plane comms
+- **7946/tcp** and 7946/udp for control plane comms (SWIM-based gossip)
+- **4789/udp** for the VXLAN data plane
 
-```
+```shell
 $ docker swarm join \
     --token SWMTKN-1-0hz2ec...2vye \
     172.31.1.5:2377
@@ -595,39 +611,39 @@ This node joined a swarm as a worker.
 
 We now have a two-node Swarm with **node1** as a manager and **node2** as a worker.
 
-
-**Create a new overlay network**
+### Create a new overlay network
 
 Now let’s create a new *overlay network* called **uber-net**.
 
 Run the following command from **node1** (manager).
 
-```
+```shell
 $ docker network create -d overlay uber-net
+
 c740ydi1lm89khn5kd52skrd9
 ```
 
 That's it. You’ve just created a brand-new overlay network that is available to all hosts in the Swarm and has its control plane encrypted with TLS (AES in GCM mode with keys automatically rotated every 12 hours). If you want to encrypt the data plane, you just add the -o encrypted ﬂag to the command. However, data plane encryption isn’t enabled by default because of the performance overhead. It’s highly recommended that you extensively test performance before enabling data plane encryption. However, if you do enable it, it’s protected by the same AES in GCM mode with key rotation.
 
-If you’re unsure about terms such as *control plane* and \* data plane\*, control plane traﬃc is cluster management traﬃc, whereas data plane traﬃc is application traﬃc. By default, Docker overlay networks encrypt cluster management traﬃc but not application traﬃc. You must explicitly enable encryption of application traﬃc.
+> If you’re unsure about terms such as **control plane** and **data plane**, control plane traﬃc is cluster management traﬃc, whereas data plane traﬃc is application traﬃc. **By default, Docker overlay networks encrypt cluster management traﬃc but not application traﬃc.** You must explicitly enable encryption of application traﬃc.
 
 You can list all networks on each node with the docker network ls command.
 
-```
+```shell
 $ docker network ls
 ```
 
 The newly created network is at the bottom of the list called **uber-net**. The other networks were automatically created when Docker was installed and when the swarm was initialized.
 
-If you run the docker network ls command on **node2**, you’ll notice that it can’t see the **uber-net** network. This is because new overlay networks are only extended to worker nodes when they are tasked with running a container on it. This lazy approach to extended overlay networks improves network scalability by reducing the amount of network gossip.
+> If you run the docker network ls command on **node2**, you’ll notice that it can’t see the **uber-net** network. This is because new overlay networks are only extended to worker nodes when they are tasked with running a container on it. **This lazy approach to extended overlay networks improves network scalability by reducing the amount of network gossip.**
 
-**Attach a service to the overlay network**
+### Attach a service to the overlay network
 
 Now that you have an overlay network, let’s create a new *Docker service* and attach it to the network. The example will create the service with two replicas (containers) so that one runs on **node1** and the other runs on **node2**. This will automatically extend the **uber-net** overlay to **node2**
 
 Run the following commands from **node1**.
 
-```
+```shell
 $ docker service create --name test \
     --network uber-net \
     --replicas 2 \
@@ -640,7 +656,7 @@ Because we’re running two replicas (containers), and the Swarm has two nodes, 
 
 Verify the operation with a docker service ps command.
 
-```
+```shell
 $ docker service ps test
 ```
 
@@ -648,17 +664,17 @@ When Swarm starts a container on an overlay network, it automatically extends th
 
 Standalone containers that are not part of a swarm service cannot attach to overlay networks unless they have the attachable=true property. The following command can be used to create an attachable overlay network that standalone containers can also attach to.
 
-```
+```shell
 $ docker network create -d overlay --attachable uber-net
 ```
 
 Congratulations. You’ve created a new overlay network spanning two nodes on separate physical underlay networks. You’ve also attached two containers to it. How easy was that!
 
-**Test the overlay network**
+### Test the overlay network
 
 Let’s test the overlay network with the ping command.
 
-As shown in Figure, we’ve got two Docker hosts on separate networks, and a single overlay network spanning both. We’ve got one container connected to the overlay network on each node. Let’s see if they can ping each other.
+As shown in the Figure below, we’ve got two Docker hosts on separate networks, and a single overlay network spanning both. We’ve got one container connected to the overlay network on each node. Let’s see if they can ping each other.
 
 <img src=".\images\TestDockerOverlayNetwork.png" style="width:75%; height: 75%;">
 
@@ -666,22 +682,24 @@ You can run the test by pinging the remote container by name. However, the examp
 
 Run a docker network inspect to see the subnet assigned to the overlay and the IP addresses assigned to the two containers in the test service.
 
-```
+```shell
 $ docker network inspect uber-net
 ```
 
-The output is heavily snipped for readability, but you can see it shows **uber-net**’s subnet is 10.0.0.0/24. 
+The output is heavily snipped for readability, but you can see it shows **uber-net**’s subnet is 10.0.0.0/24.
+
 This doesn’t match either of the physical underlay networks shown in Figure(172.31.1.0/24 and 192.168.1.0/24). You can also see the IP addresses assigned to the two containers.
 
 Run the following two commands on **node1** and **node2**. These will get the container’s ID’s and conﬁrm the IP address from the previous command. Be sure to use the container ID’s from your own lab in the second command.
 
-```
+```shell
 $ docker container ls
 ```
 
-```
+```shell
 $ docker container inspect \
-    --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' 396c8b142a85
+    --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' <container-name>
+
     10.0.0.3
 ```
 
@@ -697,39 +715,45 @@ Let’s prove it.
 
 Log on to the container on **node1** and ping the remote container.
 
-To do this on the Linux Ubuntu container you’ll need to install the ping utility. If you’re following along with the Windows PowerShell example the ping utility is already installed.
+To do this on the Linux Ubuntu container you’ll need to install the ping utility (**iputils-ping** and **iproute2** packages). If you’re following along with the Windows PowerShell example the ping utility is already installed.
 
 Remember that the container IDs will be diﬀerent in your environment.
 
-```
+```shell
 $ docker container exec -it 396c8b142a85 bash
+
 root@396c8b142a85:/# apt-get update && apt-get install iputils-ping -y
 ```
 
-Congratulations. The container on **node1** can ping the container on **node2** via the overlay network. If you created the network with the -o encrypted ﬂag, the exchange will have been encrypted.
+Congratulations. The container on **node1** can ping the container on **node2** via the overlay network. 
+
+> **If you created the network with the -o encrypted ﬂag, the exchange will have been encrypted.**
 
 You can also trace the route of the ping command from within the container. This will report a single hop, proving that the containers are communicating directly via the overlay network — blissfully unaware of any underlay networks that are being traversed.
 
-> **Note:** You’ll need to install traceroute for the Linux example to work.
+> **Note:** You’ll need to install **traceroute** for the Linux example to work.
 
-```
+```shell
 $ root@396c8b142a85:/# traceroute 10.0.0.4
 ```
 
 So far, you’ve created an overlay network with a single command. You then added containers to it. The containers were scheduled on two hosts that were on two diﬀerent Layer 2 underlay networks. Once you worked out the container’s IP addresses, you proved that they could communicate directly via the overlay network.
 
-**The theory of how it all works**
+### The theory of how it all works
 
 Now that you’ve seen how easy it is to build and use a secure overlay network, let’s ﬁnd out how it’s all put together behind the scenes.
 
 Some of the detail in this section will be speciﬁc to Linux. However, the same overall principles apply to Windows.
 
-**VXLAN primer**
+### VXLAN primer
 
-First and foremost, Docker overlay networking uses VXLAN tunnels to create virtual Layer 2 overlay networks. 
+First and foremost, **Docker overlay networking uses VXLAN tunnels to create virtual Layer 2 overlay networks.**
+
 So, before we go any further, let’s do a quick VXLAN primer.
 
-At the highest level, VXLANs let you create a virtual Layer 2 network on top of an existing Layer 3 infrastructure. That's a lot of techno jargon that means you can create a simple network that hides horriﬁcally complex networks beneath. The example we used earlier created a new 10.0.0.0/24 Layer 2 network on top of a Layer 3 IP network comprising two Layer 2 networks — 172.31.1.0/24 and 192.168.1.0/24. This is shown in Figure.
+At the highest level, VXLANs let you create a virtual Layer 2 network on top of an existing Layer 3 infrastructure. 
+
+The example we used earlier created a new 10.0.0.0/24 Layer 2 network on top of a Layer 3 IP network comprising two Layer 2 networks — 172.31.1.0/24 and 192.168.1.0/24. This is shown in the figure below.
 
 <img src=".\images\DockerOverlayWorks.png" style="width:75%; height: 75%;">
 
@@ -737,36 +761,33 @@ The beauty of VXLAN is that it’s an encapsulation technology that existing rou
 
 To create the virtual Layer 2 overlay network, a VXLAN *tunnel* is created through the underlying Layer 3 IP infrastructure. You might hear the term *underlay network* used to refer to the underlying Layer 3 infrastructure — the networks that the Docker hosts are connected to.
 
-each end of the VXLAN tunnel is terminated by a VXLAN Tunnel Endpoint (VTEP). It’s this VTEP that performs the encapsulation/de-encapsulation and other magic required to make all of this work. See Figure.
+Each end of the VXLAN tunnel is terminated by a VXLAN Tunnel Endpoint (VTEP). It’s this VTEP that performs the encapsulation/de-encapsulation and other magic required to make all of this work.
 
 <img src=".\images\DockerOverlayWorks2.png" style="width:75%; height: 75%;">
 
-**Walk through our two-container example**
+### Walk through our two-container example
 
 In the example from earlier, you had two hosts connected via an IP network. each host ran a single container, and you created a single VXLAN overlay network for the containers.
 
 To accomplish this, a new *sandbox* (network namespace) was created on each host. As mentioned in the previous chapter, a *sandbox* is like a container, but instead of running an application, it runs an isolated network stack — one that’s sandboxed from the network stack of the host itself.
 
-A virtual switch (a.k.a. virtual bridge) called **Br0** is created inside the sandbox. A VTEP is also created with one end plumbed into the **Br0** virtual switch, and the other end plumbed into the host network stack (VTEP). The end in the host network stack gets an IP address on the underlay network the host is connected to, and is bound to a UDP socket on port 4789. The two VTEPs on each host create the overlay via a VXLAN tunnel as seen in Figure.
+> A virtual switch (a.k.a. virtual bridge) called **Br0** is created inside the sandbox. A VTEP is also created with one end plumbed into the **Br0** virtual switch, and the other end plumbed into the host network stack (VTEP). The end in the host network stack gets an IP address on the underlay network the host is connected to, and is bound to a UDP socket on port 4789. The two VTEPs on each host create the overlay via a VXLAN tunnel as seen in Figure.
 
 <img src=".\images\DockerOverlayWorks3.png" style="width:75%; height: 75%;">
 
 At this point, the VXLAN overlay is created and ready for use.
 
-each container then gets its own virtual Ethernet (veth) adapter that is also plumbed into the local **Br0** virtual switch. The topology now looks like Figure, and it should be Getting easier to see how the two containers can communicate over the VXLAN overlay network despite their hosts being on two separate networks.
+Each container then gets its own virtual Ethernet (veth) adapter that is also plumbed into the local **Br0** virtual switch. The topology now looks like the figure given below, and it should be getting easier to see how the two containers can communicate over the VXLAN overlay network despite their hosts being on two separate networks.
 
 <img src=".\images\DockerOverlayWorks4.png" style="width:75%; height: 75%;">
 
-**Communication example**
+### Communication example
 
 Now that we’ve seen the main plumbing elements, let’s see how the two containers communicate.
-
-> **Warning!** This section gets quite technical, and it’s not necessary for you to understand all of this detail for day-to-day operations.
 
 For this example, we’ll call the container on node1 “**C1**” and the container on node2 “**C2**”. And let’s assume **C1** wants to ping **C2** like we did in the practical example earlier in the chapter.
 
 <img src=".\images\DockerOverlayWorks5.png" style="width:75%; height: 75%;">
-
 
 **C1** creates the ping requests and sets the destination IP address to be the 10.0.0.4 address of **C2**. It sends the traﬃc over its veth interface which is connected to the **Br0** virtual switch. The virtual switch doesn’t know where to send the packet as it doesn’t have an entry in its MAC address table (ARP table) that corresponds to the destination IP address. As a result, it ﬂoods the packet to all ports. The VTEP interface is connected to **Br0** knows how to forward the frame, so responds with its own MAC address. This is a *proxy ARP* reply and results in the **Br0** switch *learning* how to forward the packet. As a result, **Br0** updates its ARP table, mapping 10.0.0.4 to the MAC address of the local VTEP.
 
@@ -778,14 +799,19 @@ The encapsulation also wraps the frame in a UDP packet with the IP address of th
 
 When the packet arrives at node2, the kernel sees that it’s addressed to UDP port 4789. The kernel also knows that it has a VTEP interface bound to this socket. As a result, it sends the packet to the VTEP, which reads the VNID, de-encapsulates the packet, and sends it on to its own local **Br0** switch on the VLAN that corresponds the VNID. From there it is delivered to container C2.
 
-And that… ladies and gents… is how VXLAN technology is leveraged by native Docker overlay networking. 
+And that is how VXLAN technology is leveraged by native Docker overlay networking. 
 
-Hopefully that’s enough to get you started with any potential production Docker deployments. It should also give you the knowledge required to talk to your networking team about the networking aspects of your Docker infrastructure. On the topic of talking to your networking team… I recommend you don’t approach them thinking that you now know everything about VXLAN. If you do that, you’ll probably embarrass yourself ;-)
+Hopefully that’s enough to get you started with any potential production Docker deployments. It should also give you the knowledge required to talk to your networking team about the networking aspects of your Docker infrastructure. 
 
-One ﬁnal thing. Docker also supports Layer 3 routing within the same overlay network. For example, you can create an overlay network with two subnets, and Docker will take care of routing between them. The command to create a network like this could be docker network create --subnet=10.1.1.0/24 --subnet=11.1.1.0/24 -d overlay prod-net. This would result in two virtual switches, **Br0** and **Br1**, being created inside the *sandbox*, and routing happens by default.
+One ﬁnal thing. Docker also supports Layer 3 routing within the same overlay network. For example, you can create an overlay network with two subnets, and Docker will take care of routing between them. The command to create a network like this could be 
 
+```shell
+docker network create --subnet=10.1.1.0/24 --subnet=11.1.1.0/24 -d overlay prod-net
+```
 
-## 13: Volumes and persistent data
+This would result in two virtual switches, **Br0** and **Br1**, being created inside the *sandbox*, and routing happens by default.
+
+## Volumes and persistent data
 
 Stateful applications that persist data are becoming more and more important in the world of cloud-native and microservices applications. Docker is an important infrastructure technology in this space.
 
