@@ -20,17 +20,38 @@ Available at: https://github.com/kaan-keskin/introduction-to-docker
 
 **Content**
 
-> - Docker Networking
+> - Container Networking
 > - Docker Overlay Networking
 > - Volumes and Persistent Data
+> - Deploying apps with Docker Stacks
+> - Runtime and Containers Security
+> - Security in Docker
 
-## Docker Networking
+## Container Networking
 
 It’s always the network!
 
 Any time there’s a an infrastructure problem, we always blame the network. Part of the reason is that networks are at the center of everything — **no network, no app!**
 
-In the early days of Docker, networking was hard — really hard. These days, it’s *almost* a pleasure ;-)
+### Standards and Specifications
+
+A typical computing machine, whether a physical host system or a Virtual Machine, is connected to at least one network in order for the system and any running applications to become part of the enterprise’s software ecosystem. The network allows systems to connect with each other, allows applications to communicate with each other, allows for data to be transmitted not only between neighboring systems but also to systems and applications running halfway across the world. In addition, a connected system can be managed remotely, and its resources and applications performance may be monitored. Networking, however, is not at random. Instead, network connectivity and network traffic are governed by networking standards and principles, topologies, protocols, policies, rules, etc.
+
+**Since containers encapsulate running applications, similarly to individual Virtual Machines, they also need to be attached to at least one network. The container network enables communication between microservices running inside containers, containers running on the same host, running on different hosts, or a container and other applications and services from anywhere in the world. Connected containers are also easier to manage and monitor.**
+
+Container networking is guided by sets of standards that specify how a container may join one or multiple networks simultaneously. There are two container networking standards we need to be concerned about: the **Container Network Model (CNM)** and the **Container Network Interface (CNI)**. Both networking models present pros and cons in terms of adoption and level of support. 
+
+Note: You can read more about the container networking standards in **The Container Networking Landscape: CNI from CoreOS and CNM from Docker**.
+
+https://thenewstack.io/container-networking-landscape-cni-coreos-cnm-docker/
+
+### The Container Network Interface (CNI)
+
+The Container Network Interface (CNI), a Cloud Native Computing Foundation Incubator project, is the container network specification introduced by CoreOS, adopted by projects such as Mesos, Amazon ECS, Kubernetes, Cloud Foundry, OpenShift, rkt, and supported by projects such as Calico, Cilium, Romana, CNI-Genie, VMware NSX, and Weave. It links container platforms such as Kubernetes and Cloud Foundry to multiple distinct container network implementations.
+
+CNI consists of a specification and libraries for network plugin development. CNI is a much simpler specification, focusing only on the network connectivity of a container and the release of networking resources once the container is deleted.
+
+### Docker Networking
 
 In this chapter, we’ll look at the fundamentals of Docker networking. Things like the Container Network Model (CNM) and libnetwork. We’ll also get our hands dirty building some networks.
 
@@ -57,7 +78,9 @@ Drivers extend the model by implementing speciﬁc network topologies such as VX
 
 <img src=".\images\DockerNetwork.png" style="width:75%; height: 75%;">
 
-#### The Container Network Model (CNM)
+### The Container Network Model (CNM)
+
+The Container Network Model (CNM) is the container network specification introduced by Docker and implemented by the libnetwork project. Companies and other projects such as Cisco, Calico, Weave, Kuryr, VMware, and Open Virtual Networking (OVN) adopted the CNM.
 
 Everything starts with a design.
 
@@ -67,6 +90,13 @@ I recommend reading the entire spec, but at a high level, it deﬁnes three majo
 - Sandboxes
 - Endpoints
 - Networks
+
+The CNM specifies a set of objects for a container to join a network and be able to talk to other containers that are part of that network. 
+
+The CNM specifies:
+- **A network sandbox**, an isolated networking stack inside the container which may support multiple individual networks through endpoints. 
+- **A container endpoint**, specified by the CNM and attached to the network sandbox, is an interface paired with an interface on a network, allowing the container to connect to that particular network. 
+- The network sandbox supports multiple endpoints, each paired with a different network, thus allowing one container to access multiple networks simultaneously, where the network objects are also specified by the CNM.
 
 A **sandbox** is an isolated network stack. It includes; Ethernet interfaces, ports, routing tables, and DNS conﬁg.
 
@@ -88,7 +118,7 @@ Figure extends the diagram again, this time adding a Docker host. Although Conta
 
 <img src=".\images\DockerNetwork4.png" style="width:75%; height: 75%;">
 
-**Libnetwork**
+#### Libnetwork
 
 The CNM is the design doc, and libnetwork is the canonical implementation. It’s open-source, written in Go, cross-platform (Linux and Windows), and used by Docker.
 
@@ -96,7 +126,7 @@ In the early days of Docker, all the networking code existed inside the daemon. 
 
 As you’d expect, it implements all three of the components deﬁned in the CNM. It also implements native *service discovery*, *ingress-based container load balancing*, and the network control plane and management plane functionality.
 
-**Drivers**
+#### Docker Networking Drivers
 
 If libnetwork implements the control plane and management plane functions, then drivers implement the data plane. For example, connectivity and isolation is all handled by drivers. So is the actual creation of networks. The relationship is shown in Figure.
 
@@ -114,7 +144,33 @@ Docker ships with several built-in drivers, known as native drivers or *local dr
 
 On Windows they include; nat, overlay, transparent, and l2bridge.
 
-3rd-parties can also write Docker network drivers known as *remote drivers* or plugins. Weave Net is a popular example and can be downloaded from Docker Hub.
+**Bridge**
+
+The default network type that Docker containers attach to is the bridge network, implemented by the bridge driver. The main roles of a bridge network are to isolate the container network from the host system network, and to act as a DHCP server and assign unique IP addresses to containers as they are running attached to the bridge. This is a useful feature when containers of an application need to talk to each other while they all run on the same host system. Other features of bridge networks depend whether the bridge is default or user-defined. Most often, a user-defined bridge presents advantages over the default bridge, such as better traffic isolation, automatic DNS resolution, on-the-fly container connection/disconnection to and from the network, advanced and flexible configuration options, and even sharing of environment variables between containers.
+
+**Host**
+
+The host network driver option, as opposed to the bridge, eliminates the network isolation between the container and the host system by allowing the container to directly access the host network. In addition, it may help with performance optimization by eliminating the need for Network Address Translation (NAT) or proxying since the container ports are automatically published and available as host ports.
+
+**Overlay**
+
+Gaining a lot of popularity these days is the overlay network type supported by the overlay driver. It is the network type that spans multiple hosts, typically part of a cluster, allowing the containers' traffic to be routed between hosts as containers or services from one host attempt to talk to others running on another host in the cluster.
+
+This network type is very popular with container orchestration platforms because it not only enables traffic across the entire cluster of host systems, but also provides traffic isolation and management through rules and policies.
+
+**Macvlan**
+
+The macvlan network driver allows a user to change the appearance of a container on the physical network. A container may appear as a physical device with its own MAC address on the network, thus enabling the container to be directly connected to the physical network instead of having its traffic routed through the host network.
+
+**None**
+
+The none driver option for container networking disables the networking of a container while allowing the very same container to use a custom third-party network driver, if needed, to implement its networking requirements.
+
+**Network Plugins**
+
+Network plugins expand the capabilities of Docker through third-party network drivers that integrate Docker with specialized network stacks. Certain network plugins may combine features otherwise available from single network drivers while improving network resiliency and policy management.
+
+3rd-parties can also write Docker network drivers known as **remote drivers** or **plugins**. Weave Net is a popular example and can be downloaded from Docker Hub.
 
 Each driver is in charge of the actual creation and management of all resources on the networks it is responsible for. For example, an overlay network called “prod-fe-cuda” will be owned and managed by the overlay driver. This means the overlay driver will be invoked for the creation, management, and deletion of all resources on that network.
 
@@ -444,6 +500,18 @@ $ docker logs vantage-db
 ```
 
 There’s a good chance you’ll ﬁnd network connectivity errors reported in the daemon logs or container logs.
+
+### Docker Network Modes
+
+Newer features of Docker networking modes aim to further manage network capabilities in multi-host clusters, especially with Docker Swarm.
+
+#### Internal Mode
+
+We can isolate an overlay network with the internal mode, when we want to restrict containers’ access to the outside world. Otherwise, when a container is connected to an overlay network, Docker connects that container to an additional bridge network to ensure the container has access to the outside world. 
+
+#### Ingress Mode
+
+This mode targets the networking of swarms, and implements a routing-mesh across the hosts of a swarm cluster. While similar to an overlay network in supported options, only one ingress can be defined, and it cannot be removed for as long as services are using it.
 
 ### Service discovery
 
@@ -811,154 +879,226 @@ docker network create --subnet=10.1.1.0/24 --subnet=11.1.1.0/24 -d overlay prod-
 
 This would result in two virtual switches, **Br0** and **Br1**, being created inside the *sandbox*, and routing happens by default.
 
-## Volumes and persistent data
+## Volumes and Persistent Data
 
 Stateful applications that persist data are becoming more and more important in the world of cloud-native and microservices applications. Docker is an important infrastructure technology in this space.
 
-There are two main categories of data — persistent and non-persistent. Persistent is the data you need to *keep*. Things like; customer records, ﬁnancial data, research results, audit logs, and even some types of application *log* data. Non-persistent is the data you don’t need to keep. Both are important, and Docker has solutions for both. To deal with non-persistent data, every Docker container gets its own non-persistent storage. This is automatically created for every container and is tightly coupled to the lifecycle of the container. As a result, deleting the container will delete the storage and any data on it. To deal with persistent data, a container needs to store it in a *volume*. Volumes are separate objects that have their lifecycles decoupled from containers. This means you can create and manage volumes independently, and they’re not tied to the lifecycle of any container. Net result, you can delete a container that’s using a volume, and the volume won’t be deleted.Containers deal with persistent and non-persistent data, and you may ﬁnd it hard to see many differences with virtual machines.
+There are two main categories of data — persistent and non-persistent. 
 
+**Persistent** is the data you need to *keep*. Things like; customer records, ﬁnancial data, research results, audit logs, and even some types of application *log* data. 
 
-**Containers and non-persistent data**
+**Non-persistent** is the data you don’t need to keep. Both are important, and Docker has solutions for both. To deal with non-persistent data, every Docker container gets its own non-persistent storage. This is automatically created for every container and is tightly coupled to the lifecycle of the container. As a result, deleting the container will delete the storage and any data on it. 
 
-Containers are designed to be immutable. This is just a buzzword that means read-only — it’s a best practice not to change the conﬁguration of a container after it’s deployed. If something breaks or you need to change something, you should create a new container with the ﬁxes/updates and deploy it in place of the old container. You shouldn’t log into a running container and make conﬁguration changes! However, many applications require a read-write ﬁlesystem in order to simply run – they won’t even run on a read-only ﬁlesystem. This means it’s not as simple as making containers entirely read-only. Every Docker container is created by adding a thin read-write layer on top of the read-only image it’s based on. Figure shows two running containers sharing a single read-only image.
+To deal with persistent data, a container needs to store it in a **volume**. **Volumes are separate objects that have their lifecycles decoupled from containers.** This means you can create and manage volumes independently, and they’re not tied to the lifecycle of any container. 
+
+Net result, you can delete a container that’s using a volume, and the volume won’t be deleted. Containers deal with persistent and non-persistent data, and you may ﬁnd it hard to see many differences with virtual machines.
+
+### UnionFS with Copy-on-Write
+
+UnionFS is used by Docker to overlay a base container image with storage layers, such as ephemeral storage layer, custom storage layer, and config layer at the time a new container is created. The ephemeral storage is reserved for the container’s Input/Output (I/O) operations and it is not recommended to be used for persistent data; instead, a volume should be mounted on the container to provide persistent storage not managed by UnionFS.
+
+The Copy-on-Write (CoW) strategy of UnionFS allows users to “indirectly” modify the content of files available to the running container from the base container image storage layer. While the container image files are Read-Only, when a user attempts to modify such a file, no errors or mechanisms will prevent the user from doing so. Instead, the base container image file is copied and saved on the ephemeral storage layer of the container and the user is allowed to make changes to the new copy of the file. In essence, a copy of a file is being saved when a user attempts to edit a Read-Only file of the base container image, all while the base container image file remains intact.
+
+This strategy is used at the operating system level for memory management and process management, and it is used by Docker to manage the storage for container images, running containers, and to minimize I/O and the size of each storage layer.
+
+### Containers and non-persistent data
+
+Containers are designed to be immutable. This is just a buzzword that means read-only — it’s a best practice not to change the conﬁguration of a container after it’s deployed. If something breaks or you need to change something, you should create a new container with the ﬁxes/updates and deploy it in place of the old container. You shouldn’t log into a running container and make conﬁguration changes! However, many applications require a read-write ﬁlesystem in order to simply run – they won’t even run on a read-only ﬁlesystem. This means it’s not as simple as making containers entirely read-only. Every Docker container is created by adding a thin read-write layer on top of the read-only image it’s based on. Figure below shows two running containers sharing a single read-only image.
 
 <img src=".\images\ContainerLayerRO.png" style="width:75%; height: 75%;">
 
-The writable container layer exists in the ﬁlesystem of the Docker host, and you’ll hear it called various names. These include *local storage*, *ephemeral storage*, and *graphdriver storage*. It’s typically located on the Docker host in these locations:
+The writable container layer exists in the ﬁlesystem of the Docker host, and you’ll hear it called various names. These include *local storage*, *ephemeral storage*, and *graphdriver storage*. 
 
-```sh
-• Linux Docker hosts: /var/lib/docker/<storage-driver>/...
+It’s typically located on the Docker host in these locations:
 
-• Windows Docker hosts: C:\ProgramData\Docker\windowsfilter\...
-```
+- Linux Docker hosts: **'/var/lib/docker/storage-driver/...'**
+
+- Windows Docker hosts: **'C:\ProgramData\Docker\windowsfilter\\...'**
+
 This thin writable layer is an integral part of a container and enables all read/write operations. If you, or an application, update ﬁles or add new ﬁles, they’ll be written to this layer. However, it’s tightly coupled to the container’s lifecycle — it gets created when the container is created and it gets deleted when the container is deleted. The fact that it’s deleted along with a container means that it’s not an option for important data that you need to keep (persist). If your containers don’t create persistent data, this thin writable layer of *local storage* will be ﬁne and you’re good to go. However, if your containers need to persist data, you need to read the next section.
 
+### Docker Storage Drivers
 
-**Containers and persistent data**
+Typically, not a lot of data needs to be written to the container’s writable layer. However, when such a requirement presents itself, then a storage driver needs to be used to control how the container images and the running containers are stored and managed on the host system.
 
-*Volumes* are the recommended way to persist data in containers. There are three major reasons for this:
+While Docker supports a variety of storage drivers, each driver may be limited by its supported backing filesystems. 
 
-• Volumes are independent objects that are not tied to the lifecycle of a container
+The **overlay**, **overlay2** and **aufs** drivers are supported by **xfs** and **ext4** filesystems, **devicemapper** driver is backed by **direct-lvm**, while **vfs** is supported by any filesystem. 
 
-• Volumes can be mapped to specialized external storage systems
+Despite the implementation and feature differences between storage drivers, they all use the CoW strategy for stacked storage layers.
 
-• Volumes enable multiple containers on different Docker hosts to access and share the same data
+### Containers and persistent data
+
+**Volumes** are the recommended way to persist data in containers. There are three major reasons for this:
+
+- Volumes are independent objects that are not tied to the lifecycle of a container
+- Volumes can be mapped to specialized external storage systems
+- Volumes enable multiple containers on different Docker hosts to access and share the same data
 
 At a high-level, you create a volume, then you create a container and mount the volume into it. The volume is mounted into a directory in the container’s ﬁlesystem, and anything written to that directory is stored in the volume. If you delete the container, the volume and its data will still exist.
 
 <img src=".\images\DockerVolume.png" style="width:75%; height: 75%;">
 
-**Creating and managing Docker volumes**
+### Creating and managing Docker volumes
 
 Volumes are ﬁrst-class citizens in Docker. Among other things, this means they are their own object in the API and have their own docker volume sub-command.
-```sh
+
+```shell
 $ docker volume create myvol
 ```
+
 By default, Docker creates new volumes with the built-in local driver. As the name suggests, volumes created with the local driver are only available to containers on the same node as the volume. You can use the -d ﬂag to specify a different driver. Now that the volume is created, you can see it with the docker volume ls command and inspect it.
-```sh
+
+```shell
 $ docker volume ls
+
 $ docker volume inspect myvol
 ```
 
 Notice that the Driver and Scope are both local. This means the volume was created with the local driver and is only available to containers on this Docker host. The Mountpoint property tells us where in the Docker host’s ﬁlesystem the volume exists.
 
+All volumes created with the local driver get their own directory under **'/var/lib/docker/volumes'** on Linux, and **'C:\ProgramData\Docker\volumes'** on Windows. 
 
-All volumes created with the local driver get their own directory under /var/lib/docker/volumes on Linux, and C:\ProgramData\Docker\volumes on Windows. This means you can see them in your Docker host’s ﬁlesystem. You can even access them directly from your Docker host, although this is not normally recommended.
+**This means you can see them in your Docker host’s ﬁlesystem. You can even access them directly from your Docker host, although this is not normally recommended.**
 
-Now the volume is created, it can be used by one or more containers.There are two ways to delete a Docker volume docker volume prune will delete **all volumes** that are not mounted into a container or service replica, so **use with caution!** docker volume rm lets you specify exactly which volumes you want to delete. Neither command will delete a volume that is in use by a container or service replica. As the myvol volume is not in use, delete it with the prune command.
-```sh
+Now the volume is created, it can be used by one or more containers. 
+
+There are two ways to delete a Docker volume: 
+- **'docker volume prune'** will delete **all volumes** that are not mounted into a container or service replica, so **use with caution!**. 
+- **'docker volume rm'** lets you specify exactly which volumes you want to delete. 
+
+Neither command will delete a volume that is in use by a container or service replica. As the myvol volume is not in use, delete it with the prune command.
+
+```shell
 $ docker volume prune
-```
-```sh
+
 $ docker volume rm
 ```
- However, it’s also possible to deploy volumes via Dockerﬁles using the VOLUME instruction. The format is VOLUME <container-mount-point>. Interestingly, you cannot specify a directory on the host when deﬁning a volume in a Dockerﬁle. This is because *host* directories are different depending on what OS your Docker host is running – it could break your builds if you speciﬁed a directory on a Docker host that doesn’t exist. As a result, deﬁning a volume in a Dockerﬁle requires you to specify host directories at deploy-time.
 
-**Demonstrating volumes with containers and services**
-```sh
+However, it’s also possible to deploy volumes via Dockerﬁles using the VOLUME instruction. The format is **'VOLUME container-mount-point'**. 
+
+Interestingly, you cannot specify a directory on the host when deﬁning a volume in a Dockerﬁle. This is because *host* directories are different depending on what OS your Docker host is running – it could break your builds if you speciﬁed a directory on a Docker host that doesn’t exist. 
+
+As a result, deﬁning a volume in a Dockerﬁle requires you to specify host directories at deploy-time.
+
+### Demonstrating volumes with containers and services
+
+```shell
 $ docker container run -dit --name voltainer --mount source=bizvol,target=/vol alpine
 ```
-The command uses the --mount ﬂag to mount a volume called “bizvol” into the container at either /vol or c:\vol. The command completes successfully despite the fact there is no volume on the system called bizvol. This raises an interesting point:
 
-• If you specify an existing volume, Docker will use the existing volume
+The command uses the --mount ﬂag to mount a volume called “bizvol” into the container at either /vol or c:\vol. 
 
-• If you specify a volume that doesn’t exist, Docker will create it for you
-```sh
+The command completes successfully despite the fact there is no volume on the system called bizvol. 
+
+This raises an interesting point:
+- If you specify an existing volume, Docker will use the existing volume
+- If you specify a volume that doesn’t exist, Docker will create it for you.
+
+```shell
 $ docker volume ls
 ```
+
 Although containers and volumes have separate lifecycle’s, you cannot delete a volume that is in use by a container.
-```sh
+
+```shell
 $ docker volume rm bizvol
 ```
+
 The volume is brand new, so it doesn’t have any data. Let’s exec onto the container and write some data to it.
+
 ```sh
 $ docker container exec -it voltainer sh
+
 # echo "I promise to write a review of the book on Amazon" > /vol/file1
 # ls -l /vol
 # cat /vol/file1
 ```
+
 Type exit to return to the shell of your Docker host, and then delete the container with the following command.
-```sh
+
+```shell
 $ docker container rm voltainer -f
 ```
+
 Even though the container is deleted, the volume still exists:
-```sh
+
+```shell
 $ docker container ls -a
+
 $ docker volume ls
 ```
+
 Because the volume still exists, you can look at its mount point on the host to check if the data is still there. Run the following commands from the terminal of your Docker host. The ﬁrst one will show that the ﬁle still exists, the second will show the contents of the ﬁle.
-```sh
+
+```shell
 $ ls -l /var/lib/docker/volumes/bizvol/\_data/
 $ cat /var/lib/docker/volumes/bizvol/\_data/file1
 ```
+
 It’s even possible to mount the bizvol volume into a new service or container. The following command creates a new Docker service, called hellcat, and mounts bizvol into the service replica at /vol. You’ll need to be running in swarm mode for this command to work. If you’re running in single-engine mode you can use a docker container run command instead.
+
 ```sh
 $ docker service create --name hellcat --mount source=bizvol,target=/vol alpine sleep 1d
+
 $ docker service ps hellcat
 ```
+
 In this example, the replica is running on node1. Log on to node1 and get the ID of the service replica container.
+
 ```sh
 node1$ docker container ls
 ```
-Notice that the container name is a combination of service-name, replica-number, and replica-ID separated by periods. Exec onto the container and check that the data is present in /vol. We’ll use the service replica’s container ID in the exec example. 
+
+Notice that the container name is a combination of service-name, replica-number, and replica-ID separated by periods. Exec onto the container and check that the data is present in /vol. We’ll use the service replica’s container ID in the exec example.
+
 ```sh
 node1$ docker container exec -it df6 sh
+
 /# cat /vol/file1
 ```
+
 Excellent, the volume has preserved the original data and made it available to a new container.
 
-**Sharing storage across cluster nodes**
+### Sharing storage across cluster nodes
 
-Integrating external storage systems with Docker makes it possible to share volumes between cluster nodes. These external systems can be cloud storage services or enterprise storage systems in your on-premises data centers. As an example, a single storage LUN or NFS share can be presented to multiple Docker hosts, allowing it to be used by containers and service replicas no-matter which Docker host they’re running on. Figure shows a single external shared volume being presented to two Docker nodes. These Docker nodes can then make the shared volume available to either, or both containers.
+Integrating external storage systems with Docker makes it possible to share volumes between cluster nodes. These external systems can be cloud storage services or enterprise storage systems in your on-premises data centers. As an example, a single storage LUN or NFS share can be presented to multiple Docker hosts, allowing it to be used by containers and service replicas no-matter which Docker host they’re running on. Figure below shows a single external shared volume being presented to two Docker nodes. These Docker nodes can then make the shared volume available to either, or both containers.
 
 <img src=".\images\ShareStorage.png" style="width:75%; height: 75%;">
 
+Building a setup like this requires a lot of things. You need access to a specialised storage systems and knowledge of how it works and presents storage. You also need to know how your applications read and write data to the shared storage. Finally, you need a volumes driver plugin that works with the external storage system.
 
-Building a setup like this requires a lot of things. You need access to a specialised storage systems and knowledge of how it works and presents storage. You also need to know how your applications read and write data to the shared storage. Finally, you need a volumes driver plugin that works with the external storage system.bDocker Hub is the best place to ﬁnd volume plugins. Login to Docker Hub, select the view to show plugins instead of containers, and ﬁlter results to only show Volume plugins. Once you’ve located the appropriate plugin for your storage system, you create any conﬁguration ﬁles it might need, and install it with docker plugin install. Once the plugin is registered, you can create new volumes from the storage system using docker volume create with the -d ﬂag. The following example installs the Pure Storage Docker volume plugin. This plugin provides access to storage volumes on either a Pure Storage FlashArray or FlashBlade storage system. Plugins only work with the correct external storage systems.
+Docker Hub is the best place to ﬁnd volume plugins. Login to Docker Hub, select the view to show plugins instead of containers, and ﬁlter results to only show Volume plugins. Once you’ve located the appropriate plugin for your storage system, you create any conﬁguration ﬁles it might need, and install it with docker plugin install. Once the plugin is registered, you can create new volumes from the storage system using docker volume create with the -d ﬂag. 
+
+The following example installs the Pure Storage Docker volume plugin. This plugin provides access to storage volumes on either a Pure Storage FlashArray or FlashBlade storage system. Plugins only work with the correct external storage systems.
 
 1. The Pure Storage plugin requires a conﬁguration ﬁle called pure.json in the Docker host’s /etc/pure-docker-plugin/directory. This ﬁle contains the information required for the plugin to locate the external storage system, authenticate, and access resources.
 
 2. Install the plugin and grant the required permissions.
-```sh
+
+```shell
 $ docker plugin install purestorage/docker-plugin:latest --alias pure --grant-all-permissions
+
 $ docker plugin ls
 ```
 
- Create a new volume with the plugin (you can also do this as part of the container creation process). This example creates a new 25GB volume called “fastvol” on the registered Pure Storage backend.
+Create a new volume with the plugin (you can also do this as part of the container creation process). This example creates a new 25GB volume called “fastvol” on the registered Pure Storage backend.
+
 ```sh
 $ docker volume create -d pure -o size=25GB fastvol
 ```
+
 Different storage drivers support different options, but this should be enough to give you a feel for how they work.
 
+### Potential data corruption
 
-**Potential data corruption**
+A major concern with any conﬁguration that shares a single volume among multiple containers is **data corruption**.
 
-A major concern with any conﬁguration that shares a single volume among multiple containers is **data corruption**.Assume the following example based on Figure above. The application running in ctr-1 on node-1 updates some data in the shared volume. However, instead of writing the update directly to the volume, it holds it in its local buffer for faster recall (this is common in many operating systems). At this point, the application in ctr-1 thinks the data has been written to the volume. However, before ctr-1 on node-1 ﬂushes its buffers and commits the data to the volume, the app in ctr-2 on node-2 updates the same data with a different value and commits it directly to the volume. At this point, both applications *think* they’ve updated the data in the volume, but in reality only the application in ctr-2 has. A few seconds later, ctr-1 on node-1 ﬂushes the data to the volume, overwriting the changes made by the application in ctr-2. However, the application in ctr-2 is totally unaware of this! This is one of the ways data corruption happens. To prevent this, you need to write your applications in a way to avoid things like this.
+Assume the following example based on Figure above. The application running in ctr-1 on node-1 updates some data in the shared volume. However, instead of writing the update directly to the volume, it holds it in its local buffer for faster recall (this is common in many operating systems). At this point, the application in ctr-1 thinks the data has been written to the volume. However, before ctr-1 on node-1 ﬂushes its buffers and commits the data to the volume, the app in ctr-2 on node-2 updates the same data with a different value and commits it directly to the volume. At this point, both applications *think* they’ve updated the data in the volume, but in reality only the application in ctr-2 has. A few seconds later, ctr-1 on node-1 ﬂushes the data to the volume, overwriting the changes made by the application in ctr-2. However, the application in ctr-2 is totally unaware of this! 
 
+This is one of the ways data corruption happens. To prevent this, you need to write your applications in a way to avoid things like this.
 
-
-
-## 14: Deploying apps with Docker Stacks
+## Deploying apps with Docker Stacks
 
 Deploying and managing cloud-native microservices applications comprising lots of small integrated services at scale is hard. Fortunately, Docker Stacks are here to help. They simplify application management by providing; *desired state, rolling updates, simple, scaling operations, health checks,* and more! All wrapped in a nice declarative model.
 
@@ -1191,7 +1331,6 @@ $ echo staging | docker secret create staging_token -sqy21qep9w17h04k3600o6qsj
 $ docker secret ls
 ```
 
-
 **Deploying the sample app**
 
 Clone the app’s GitHub repo to your Swarm manager.
@@ -1270,15 +1409,63 @@ $ docker stack rm seastack
 
 Notice that the networks and services were deleted, but the secrets weren’t. This is because the secrets were pre- created and existed before the stack was deployed. If your stack deﬁnes volumes at the top-level, these will not be deleted by `docker stack rm` either. This is because volumes are intended as long-term persistent data stores and exist independent of the lifecycle of containers, services, and stacks.
 
+## Runtime and Containers Security
 
+An often overlooked aspect of the application development process is Security. Due to its continuously growing complexity, security in general tends to cause a lot of anxiety with users who become overloaded with an overwhelming amount of additional tasks, to redundantly secure every piece of software developed and deployed. And the list continues with the security requirements of the development tools used, artifacts and images, repositories, client tools and client – repository connections, runtime daemons and engines, etc. Also, the fact that there is no tool to act as a one-stop-shop for all, or most, security aspects, does not help to alleviate this general sense of anxiety.
 
+### Securing the Environment
 
+Prior to securing the artifacts part of the software solution such as container images and containers, users should focus on securing the development environment, which is not just one specific thing, or one single layer of tools. The environment assumes everything from the ground up, whether on prem or cloud: hardware, operating systems, virtualization hypervisors, network fabric, storage services - just to name a few environment aspects.
 
-## 15: Security in Docker
+### Securing the Container Runtime
 
-Good security is all about layers, and Docker has lots of layers. It supports all the major Linux security technologies as well as plenty of its own. And the best thing… many of them are simple and easy to conﬁgure. In this chapter, we’ll look at some of the technologies that can make running containers on Docker very secure.
+Once those environmental aspects are secured, now it is time to focus on the tools used during the development process: container runtimes, container engines, command line clients, web and graphical user interfaces, artifact repositories – public and/or private, automation tools, etc.
 
-Security is all about layers. Generally speaking, the more layers of security the more secure something is. Docker offers a lot of security layers. Figure shows some of the security-related technologies we’ll cover in the chapter.
+Running container processes inherit their permissions from the user who is running the container engine – often as a daemon. As a result, one of the security best practices is to ensure the container engine and runtime are not run with root privileges, but run by regular non-root users.
+
+A recently introduced feature in Docker, that quickly matured from experimental phase, allows the Docker Engine to run in a rootless mode to alleviate possible Docker daemon vulnerabilities by running the daemon in an isolated user namespace. This setup depends on a set of prerequisites that help with UID and GID mapping.
+
+Podman, in contrast to Docker, does not rely on a daemon, and it supported both rootless and rooted modes since its early days, the reason it was introduced as a more secure containerization tool than the more popular Docker Engine. However, there are a few features that are not supported in rootless mode, as a few networking and storage related operations require a rooted environment. Podman’s rootless mode is also achieved with UID and GID mapping.
+
+As their popularity grew in the development ecosystem, the container runtimes and containerization engines started receiving continuous critical security feature updates especially as a result of the growing number of security threats and vulnerabilities.
+
+### Securing the Client Access
+
+Another security concern is the client accessing the runtime. With runtimes being available as cloud services, remote hosts, or on-prem, and the client configured for remote or local access method, it is recommended that the client tool to access the runtime in a secure fashion.
+
+Docker allows users to secure access to the Docker daemon socket through multiple methods. A popular method is via SSH, while a more complex method is via TLS over HTTPS. Docker client requests can be secured by default ensuring that every call is verified. Daemon and Client modes also allow for client authentication mechanism configuration, in addition to a secure Docker port configuration option.
+
+### Running Secure Container Images
+
+**Ensuring that we deploy containers from trusted images and image sources is another important security aspect of containerization tools.** 
+
+Tools of the same containerization framework, such as Docker, or Podman and Buildah, are capable of content trust signature verification to ensure only signed images are run as containers by the runtime. 
+
+Although we have access to work with multiple OCI-compatible runtimes and container images can be ported and run across runtimes, **cross-runtime content trust signature verification** is not yet fully supported by all tools, but it is a helpful feature the community desires to see implemented.
+
+### Secure Containers
+
+Container security relies heavily on the integrity of their source images and the security of the runtime engine. 
+
+Runtime engines running in rootless mode ensure that the container processes get started and are run in isolated user namespaces. However, user remapping and container image content signatures are not fully responsible for container security.
+
+Some users are debating the need to run containers in rooted vs. non-rooted mode, however, it is a clear security risk to allow a container process to run in rooted mode giving it full access over host resources. While running containers in rooted mode may be more of a routine that is part of the development process, it can be addressed with capabilities. A complex method indeed, capabilities replace the need for full root access of a container process with a controlled and limited root access that can be managed and set at a very granular level. The benefit of capabilities is that the container process will only receive the needed amount of privileges over the resources of the host that are critical for the container’s operations. All other resources will be accessed as a regular user with unprivileged restricted permissions.
+
+### Security Tools
+
+As the security features of the container runtimes and tools are far from being perfect, users rely on additional security tools when concerned about the security of their containerized applications.
+
+Antivirus software can be used to scan container images, container filesystems and storage volumes, but it may adversely impact the performance of the containers during the scanning process.
+
+Container processes may be secured by assigning AppArmor profiles to them. AppArmor, or Application Armor) is a popular Linux operating system security module used to protect system and user processes against security threats.
+
+Another layer of container process security can be protected with **Seccomp**. **Secure computing is a Linux kernel feature designed to restrict the access of a container process over host resources.** Seccomp profiles can allow or block system calls that may modify kernel modules, kernel memory, kernel I/O, modify namespaces, etc. Both Seccomp and capabilities are equally complex and granular approaches, and a significant amount of functional overlap can be observed.
+
+## Security in Docker
+
+Good security is all about layers, and Docker has lots of layers. It supports all the major Linux security technologies as well as plenty of its own. And many of them are simple and easy to conﬁgure. In this chapter, we’ll look at some of the technologies that can make running containers on Docker very secure.
+
+Security is all about layers. Generally speaking, the more layers of security the more secure something is. Docker offers a lot of security layers. Figure below shows some of the security-related technologies we’ll cover in the chapter.
 
 <img src=".\images\Security.png" style="width:75%; height: 75%;">
 
@@ -1291,7 +1478,6 @@ Docker on Linux leverages most of the common Linux security and workload isolati
 **Image security scanning** analyses images, detects known vulnerabilities, and provides detailed reports.
 
 **Docker secrets** are a way to securely share sensitive data and are ﬁrst-class objects in Docker. They’re stored in the encrypted cluster store, encrypted in-ﬂight when delivered to containers, stored in in-memory ﬁlesystems when in use, and operate a least-privilege model. There’s a lot more, but the important thing to know is that Docker works with the major Linux security technologies as well as providing its own extensive and growing set of security technologies. While the Linux security technologies tend to be complex, the native Docker security technologies tend to be simple.
-
 
 We all know that security is important. We also know that security can be complicated and boring. When Docker decided to bake security into the platform, it decided to make it simple and easy. They knew that if security was hard to conﬁgure, people wouldn’t use it. As a result, most of the security technologies offered by the Docker platform are simple to use. They also ship with sensible defaults — meaning you get a *fairly secure* platform at zero effort. Of course, the defaults aren’t perfect, but they’re enough to serve as a safe starting point. From there you should customize them to your requirements.
 
