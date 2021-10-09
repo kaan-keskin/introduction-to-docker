@@ -94,15 +94,12 @@ I recommend reading the entire spec, but at a high level, it deﬁnes three majo
 The CNM specifies a set of objects for a container to join a network and be able to talk to other containers that are part of that network. 
 
 The CNM specifies:
-- **A network sandbox**, an isolated networking stack inside the container which may support multiple individual networks through endpoints. 
-- **A container endpoint**, specified by the CNM and attached to the network sandbox, is an interface paired with an interface on a network, allowing the container to connect to that particular network. 
-- The network sandbox supports multiple endpoints, each paired with a different network, thus allowing one container to access multiple networks simultaneously, where the network objects are also specified by the CNM.
 
-A **sandbox** is an isolated network stack. It includes; Ethernet interfaces, ports, routing tables, and DNS conﬁg.
+- **A network sandbox**, an isolated networking stack inside the container which may support multiple individual networks through endpoints. It includes; Ethernet interfaces, ports, routing tables, and DNS conﬁg.
 
-**Endpoints** are virtual network interfaces (E.g. veth). Like normal network interfaces, they’re responsible for making connections. In the case of the CNM, it’s the job of the *endpoint* to connect a *sandbox* to a *network*.
+- **A container endpoint**, specified by the CNM and attached to the network sandbox, is an interface paired with an interface on a network, allowing the container to connect to that particular network. **Endpoints** are virtual network interfaces (E.g. veth). Like normal network interfaces, they’re responsible for making connections. In the case of the CNM, it’s the job of the *endpoint* to connect a *sandbox* to a *network*.
 
-**Networks** are a software implementation of an switch (802.1d bridge). As such, they group together and isolate a collection of endpoints that need to communicate. Figure shows the three components and how they connect.
+- The network sandbox supports multiple endpoints, each paired with a different network, thus allowing one container to access multiple networks simultaneously, where the network objects are also specified by the CNM. **Networks** are a software implementation of an switch (802.1d bridge). As such, they group together and isolate a collection of endpoints that need to communicate. Figure shows the three components and how they connect.
 
 <img src=".\images\DockerNetwork2.png" style="width:75%; height: 75%;">
 
