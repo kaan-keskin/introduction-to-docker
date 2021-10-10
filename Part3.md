@@ -115,6 +115,10 @@ Figure extends the diagram again, this time adding a Docker host. Although Conta
 
 <img src=".\images\DockerNetwork4.png" style="width:75%; height: 75%;">
 
+The CNM provides portability to applications across diverse infrastructures.
+
+<img src=".\images\docker-container-network-model.png" style="width:75%; height: 75%;">
+
 #### Libnetwork
 
 The CNM is the design doc, and libnetwork is the canonical implementation. It’s open-source, written in Go, cross-platform (Linux and Windows), and used by Docker.
@@ -123,13 +127,19 @@ In the early days of Docker, all the networking code existed inside the daemon. 
 
 As you’d expect, it implements all three of the components deﬁned in the CNM. It also implements native *service discovery*, *ingress-based container load balancing*, and the network control plane and management plane functionality.
 
+Interaction between Docker Engine, CNM, and Network Drivers:
+
+<img src=".\images\docker-network-infrastructure.png" style="width:75%; height: 75%;">
+
 #### Docker Networking Drivers
 
 If libnetwork implements the control plane and management plane functions, then drivers implement the data plane. For example, connectivity and isolation is all handled by drivers. So is the actual creation of networks. The relationship is shown in Figure.
 
-<img src=".\images\DockerNetwork5.png" style="width:75%; height: 75%;">
+<img src=".\images\DockerNetwork5.png" style="width:75%; height: 75%;"/>
 
-Docker ships with several built-in drivers, known as native drivers or *local drivers*. 
+<img src=".\images\docker-cnm-drivers.png" style="width:75%; height: 75%;">
+
+Docker ships with several built-in drivers, known as native drivers or *local drivers*.
 
 **On Linux they include:**
 - bridge, 
@@ -143,11 +153,63 @@ On Windows they include; nat, overlay, transparent, and l2bridge.
 
 **Bridge**
 
+A Bridge is a default Docker network that is present on any Linux host which runs a Docker Engine.
+
+Understanding correlated terms:
+- A bridge is a Docker network
+- A bridge is also a Docker network driver/template, which creates a bridge network
+- docker0 is the kernel building block that is used in implementing the bridge network
+
 The default network type that Docker containers attach to is the bridge network, implemented by the bridge driver. The main roles of a bridge network are to isolate the container network from the host system network, and to act as a DHCP server and assign unique IP addresses to containers as they are running attached to the bridge. This is a useful feature when containers of an application need to talk to each other while they all run on the same host system. Other features of bridge networks depend whether the bridge is default or user-defined. Most often, a user-defined bridge presents advantages over the default bridge, such as better traffic isolation, automatic DNS resolution, on-the-fly container connection/disconnection to and from the network, advanced and flexible configuration options, and even sharing of environment variables between containers.
+
+**Bridge Network**
+
+<img src=".\images\docker-bridge-network.png" style="width:75%; height: 75%;"/>
+
+**User-Defined Bridge Network**
+
+<img src=".\images\docker-user-defined-bridge-network.png" style="width:75%; height: 75%;"/>
+
+**Bridge Network Comparison**
+
+| Features | Default | User-Defined |
+| :--- | :---: | :---: |
+| Better isolation and interoperability between containerized applications | No | Yes |
+|Automatic DNS resolution between containers | No | Yes |
+|Attachment and detachment of containers on the fly | No | Yes |
+|Configurable bridge creation | No | Yes |
+|Linked containers share environment variables | Yes | No |
+
+**Bridge Network Driver: Use Case**
+
+The discovery of service is done automatically by the Docker bridge because they are on the same network.
+
+<img src=".\images\docker-bridge-network-use-case.png" style="width:75%; height: 75%;"/>
 
 **Host**
 
 The host network driver option, as opposed to the bridge, eliminates the network isolation between the container and the host system by allowing the container to directly access the host network. In addition, it may help with performance optimization by eliminating the need for Network Address Translation (NAT) or proxying since the container ports are automatically published and available as host ports.
+
+While using a host network, the container shares the host’s networking namespace, and the container is
+not allocated its own IP address.
+
+Advantages:
+
+- Optimizes the performance.
+- Handles a large range of ports.
+- Does not require network address translation (NAT).
+- Does not require “userland-proxy” for each port.
+
+--network host: This is passed with command docker service create to use a host network for a swarm service.
+
+Features:
+
+- An overlay network is used to manage swarm and service-related traffic.
+- The Docker daemon host network and ports are used to send data for individual swarm service.
+
+> NOTE: The host networking driver only works on Linux hosts.
+
+<img src=".\images\docker-host-network.png" style="width:75%; height: 75%;"/>
 
 **Overlay**
 
@@ -155,13 +217,88 @@ Gaining a lot of popularity these days is the overlay network type supported by 
 
 This network type is very popular with container orchestration platforms because it not only enables traffic across the entire cluster of host systems, but also provides traffic isolation and management through rules and policies.
 
+Open ports:
+
+- Open TCP port 2377 for cluster management communications
+- Open TCP and UDP port 7946 for communication among nodes
+- Open UDP port 4789 for overlay network traffic
+
+Initialize Docker daemon as a swarm manager using docker swarm init, or join the Docker daemon to an existing swarm using docker swarm join, before creating an overlay network.
+
+Overlay network driver: It creates a distributed network among multiple Docker daemon hosts.
+
+<img src=".\images\docker-overlay-network-overview.png" style="width:75%; height: 75%;"/>
+
+Provisioning for an overlay network is automated by Docker Swarm control plane.
+
+<img src=".\images\docker-overlay-network.png" style="width:75%; height: 75%;"/>
+
+**Overlay Network Driver: Use Case**
+
+<img src=".\images\docker-overlay-network-use-case.png" style="width:75%; height: 75%;"/>
+
+**Egress and Ingress**
+
+<img src=".\images\docker-swarm-overlay-network.png" style="width:75%; height: 75%;"/>
+
+**Egress** in the world of networking implies traffic that exits an entity or a network boundary, while **Ingress** is traffic that enters the boundary of a network. 
+
+While in service provider types of the network this is pretty clear, in the case of datacenter or cloud it is slightly different. In the cloud, Egress still means traffic that’s leaving from inside the private network out to the public internet, but Ingress means something slightly different. To be clear private networks here refers to resources inside the network boundary of a data center or cloud environment and its IP space is completely under the control of an entity who operates it.
+
+Since traffic often is translated using NAT in and out of a private network like the cloud, a response back from a public endpoint to a request that was initiated inside the private network is not considered Ingress. If a request is made from the private network out to a public IP, the public server/endpoint responds back to that request using a port number that was defined in the request, and firewall allows that connection since its aware of an initiated session based on that port number. See picture below for reference.
+
+<img src=".\images\egress-ingress-image-1.png" style="width:75%; height: 75%;"/>
+
+With Egress out of the way, let’s define Ingress. As you might be guessing by now, Ingress refers to unsolicited traffic sent from an address in public internet to the private network – it is not a response to a request initiated by an inside system. In this case, firewalls are designed to decline this request unless there are specific policy and configuration that allows ingress connections. See picture below for reference.
+
+<img src=".\images\egress-ingress-image-2.png" style="width:75%; height: 75%;"/>
+
 **Macvlan**
 
 The macvlan network driver allows a user to change the appearance of a container on the physical network. A container may appear as a physical device with its own MAC address on the network, thus enabling the container to be directly connected to the physical network instead of having its traffic routed through the host network.
 
+Macvlan network is used to assign MAC address to the virtual network interface of containers. This helps the legacy applications to directly connect to the physical network.
+
+Precautionary measures:
+
+- Cut down the large number of unique MAC address to save the network from damage.
+- Handle “promiscuous mode” via networking equipment to assign multiple MAC address to single
+physical interface.
+
+<img src=".\images\docker-macvlan-network.png" style="width:75%; height: 75%;"/>
+
+Positive performance implications:
+
+- MACVLAN has simple and lightweight architecture.
+- MACVLAN drivers provide direct access between physical network and containers.
+- MACVLAN containers receive routable IP addresses that are present on the subnet of the physical network.
+
+Use cases of MACVLAN include:
+
+- Low-latency applications.
+- Network design which needs containers to be on the same subnet and use IPs as the external host network.
+
+**MACVLAN Network Driver: Use Case**
+
+<img src=".\images\docker-macvlan-network-use-case.png" style="width:75%; height: 75%;"/>
+
 **None**
 
 The none driver option for container networking disables the networking of a container while allowing the very same container to use a custom third-party network driver, if needed, to implement its networking requirements.
+
+None provides the functionality of disabling networking.
+
+Form a container with none network:
+
+```shell
+$ docker run --rm -dit \
+--network none \
+--name no-net-alpine \
+alpine:latest \
+ash
+```
+
+Using **'--network none'** will result in a container with no eth0.
 
 **Network Plugins**
 
@@ -172,6 +309,57 @@ Network plugins expand the capabilities of Docker through third-party network dr
 Each driver is in charge of the actual creation and management of all resources on the networks it is responsible for. For example, an overlay network called “prod-fe-cuda” will be owned and managed by the overlay driver. This means the overlay driver will be invoked for the creation, management, and deletion of all resources on that network.
 
 In order to meet the demands of complex highly-ﬂuid environments, libnetwork allows multiple network drivers to be active at the same time. This means your Docker environment can sport a wide range of heterogeneous networks.
+
+**Prune Networks**
+
+Docker networks don’t take up much disk space, but they do create iptables rules, bridge network devices, and routing table entries.
+
+The user can use the following command to clean up networks which aren’t used by any containers:
+
+```shell
+$ docker network prune
+```
+
+### Networking from Container Point of View
+
+<img src=".\images\docker-network-container-view.png" style="width:75%; height: 75%;"/>
+
+**Published ports**
+
+Making a port available using --publish or -p will create a firewall rule that map a container port to the port present on a Docker host. 
+
+Examples are provided in the following table:
+
+| Flag value | Description |
+| :--- | :--- |
+| -p 8080:80 | TCP port 80 in the container is mapped to port 8080 on the Docker host. |
+| -p 192.168.1.100:8080:80 | TCP port 80 in the container is mapped to port 8080 on the Docker host for connections to host IP 192.168.1.100. |
+| -p 8080:80/udp | UDP port 80 in the container is mapped to port 8080 on the Docker host. |
+| -p 8080:80/tcp -p 8080:80/udp | TCP port 80 in the container is mapped to TCP port 8080 on the Docker host and UDP port 80 in the container is mapped to UDP port 8080 on the Docker host. |
+
+**IP address**
+
+- An IP address is assigned to a container for every Docker network that it connects to.
+- **--network** is used to connect a container to a single network.
+- The **docker network connect** is used to connect a running container to multiple networks.
+- The IP address can be specified -ipwhile connecting the container to a network by using **--ip** or **--ip6** flags.
+
+**Hostname**
+
+- Container ID in the Docker is the default hostname of the container.
+- A hostname is overridden by using **--hostname**.
+- Additional network alias is specified by using **--alias** flag for the container on an existing network.
+
+**DNS services**
+
+A container inherits the DNS settings of the Docker daemon, including the **/etc/hosts** and **/etc/resolv.conf**.
+
+| Flag | Description |
+| :--- | :--- |
+| --dns | IP address of a DNS server. Multiple --dns flags are used to specify multiple DNS servers. |
+| --dns-search | Searches non-fully-qualified hostnames Multiple --dns-search flags are used to specify multiple DNS search prefixes. |
+| --dns-opt | Represents a DNS option and its value. |
+| --hostname | Hostname of a container. |
 
 ### Single-host bridge networks
 
